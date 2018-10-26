@@ -188,14 +188,6 @@ public abstract class AbstractJarsignerMojo
     private boolean protectedAuthenticationPath;
 
     /**
-     * Controls processing of project attachments.
-     *
-     * @deprecated As of version 1.1 in favor of the new parameter <code>processAttachedArtifacts</code>.
-     */
-    @Parameter( property = "jarsigner.attachments" )
-    private Boolean attachments;
-
-    /**
      * A set of artifact classifiers describing the project attachments that should be processed. This parameter is only
      * relevant if {@link #processAttachedArtifacts} is <code>true</code>. If empty, all attachments are included.
      *
@@ -290,7 +282,7 @@ public abstract class AbstractJarsignerMojo
                     processed += processArtifact( this.project.getArtifact() ) ? 1 : 0;
                 }
 
-                if ( processAttachedArtifacts && !Boolean.FALSE.equals( attachments ) )
+                if ( processAttachedArtifacts )
                 {
                     Collection<String> includes = new HashSet<>();
                     if ( includeClassifiers != null )
