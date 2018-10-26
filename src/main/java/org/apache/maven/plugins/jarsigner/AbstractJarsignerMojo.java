@@ -292,22 +292,20 @@ public abstract class AbstractJarsignerMojo
 
                 if ( processAttachedArtifacts && !Boolean.FALSE.equals( attachments ) )
                 {
-                    Collection<String> includes = new HashSet<String>();
+                    Collection<String> includes = new HashSet<>();
                     if ( includeClassifiers != null )
                     {
                         includes.addAll( Arrays.asList( includeClassifiers ) );
                     }
 
-                    Collection<String> excludes = new HashSet<String>();
+                    Collection<String> excludes = new HashSet<>();
                     if ( excludeClassifiers != null )
                     {
                         excludes.addAll( Arrays.asList( excludeClassifiers ) );
                     }
 
-                    for ( Object o : this.project.getAttachedArtifacts() )
+                    for ( Artifact artifact : this.project.getAttachedArtifacts() )
                     {
-                        final Artifact artifact = (Artifact) o;
-
                         if ( !includes.isEmpty() && !includes.contains( artifact.getClassifier() ) )
                         {
                             continue;
@@ -510,7 +508,7 @@ public abstract class AbstractJarsignerMojo
         request.setProtectedAuthenticationPath( protectedAuthenticationPath );
 
         // Preserves 'file.encoding' the plugin is executed with.
-        final List<String> additionalArguments = new ArrayList<String>();
+        final List<String> additionalArguments = new ArrayList<>();
 
         boolean fileEncodingSeen = false;
 
