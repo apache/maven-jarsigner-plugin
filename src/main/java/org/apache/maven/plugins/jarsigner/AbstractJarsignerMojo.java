@@ -370,6 +370,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @param archive the archive file to treat by jarsigner
      * @return the request
+     * @throws MojoExecutionException if an exception occurs
      * @since 1.3
      */
     protected abstract JarSignerRequest createRequest( File archive )
