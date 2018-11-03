@@ -26,11 +26,11 @@ under the License.
     <artifactId>maven-plugins</artifactId>
     <groupId>org.apache.maven.plugins</groupId>
     <version>33</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <artifactId>maven-jarsigner-plugin</artifactId>
-  <version>1.5-SNAPSHOT</version>
+  <version>3.0.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Jarsigner Plugin</name>
@@ -53,7 +53,7 @@ under the License.
     <connection>scm:git:https://gitbox.apache.org/repos/asf/maven-jarsigner-plugin.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/maven-jarsigner-plugin.git</developerConnection>
     <url>https://github.com/apache/maven-jarsigner-plugin/tree/${project.scm.tag}</url>
-    <tag>HEAD</tag>
+    <tag>maven-jarsigner-plugin-3.0.0</tag>
   </scm>
   <issueManagement>
     <system>JIRA</system>
