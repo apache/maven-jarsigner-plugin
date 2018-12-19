@@ -38,7 +38,7 @@ import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
  * @author <a href="cs@schulte.it">Christian Schulte</a>
  * @since 1.0
  */
-@Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY)
+@Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
 public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
 
     /**
