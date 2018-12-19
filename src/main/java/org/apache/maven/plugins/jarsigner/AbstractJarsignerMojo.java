@@ -254,11 +254,31 @@ public abstract class AbstractJarsignerMojo
     @Component( hint = "mng-4384" )
     private SecDispatcher securityDispatcher;
 
+    /**
+     * How many times to try to sign or verify a jar (assuming each previous attempt is a failure).
+     *
+     * This option may be desirable if you are using a Time Stamp Authority,
+     * and your network conditions cause intermittent failures.
+     *
+     * The default is "1" for one attempt.
+     *
+     * Less than 0 and "0" we be treated as 1 (because using "skip" is accepted and encouraged,
+     * and an infinite retry loop is undesirable).
+     *
+     * @since 3.0.1
+     */
+    @Parameter( property = "jarsigner.maxTries", defaultValue = "1" )
+    private int maxTries;
+
     public final void execute()
         throws MojoExecutionException
     {
         if ( !this.skip )
         {
+            if ( maxTries <= 0 )
+            {
+                maxTries = 1;
+            }
             Toolchain toolchain = getToolchain();
 
             if ( toolchain != null )
@@ -556,24 +576,40 @@ public abstract class AbstractJarsignerMojo
 
         try
         {
-            JavaToolResult result = jarSigner.execute( request );
-
-            Commandline commandLine = result.getCommandline();
-
-            int resultCode = result.getExitCode();
-
-            if ( resultCode != 0 )
-            {
-                // CHECKSTYLE_OFF: LineLength
-                throw new MojoExecutionException( getMessage( "failure", getCommandlineInfo( commandLine ), resultCode ) );
-                // CHECKSTYLE_ON: LineLength
-            }
-
+            sign( jarSigner, request, maxTries );
         }
         catch ( JavaToolException e )
         {
             throw new MojoExecutionException( getMessage( "commandLineException", e.getMessage() ), e );
         }
+    }
+
+    /**
+     * Attempts signing with a maximum number of maxTries times. If all attempts fail, MojoExecutionException is thrown.
+     * If java tool invocation could not be created, a JavaToolException will be thrown.
+     *
+     * @param jarSigner the JarSigner
+     * @param request the JarSignerRequest
+     * @param maxTries a positive integer
+     * @throws JavaToolException
+     * @throws MojoExecutionException
+     */
+    void sign( JarSigner jarSigner, JarSignerRequest request, int maxTries ) 
+            throws JavaToolException, MojoExecutionException
+    {
+        Commandline commandLine = null;
+        int resultCode = 0;
+        for ( int attempt = 0; attempt < maxTries; attempt++ )
+        {
+            JavaToolResult result = jarSigner.execute( request );
+            resultCode = result.getExitCode();
+            commandLine = result.getCommandline();
+            if ( resultCode == 0 )
+            {
+                return;
+            }
+        }
+        throw new MojoExecutionException( getMessage( "failure", getCommandlineInfo( commandLine ), resultCode ) );
     }
 
     protected String decrypt( String encoded )
