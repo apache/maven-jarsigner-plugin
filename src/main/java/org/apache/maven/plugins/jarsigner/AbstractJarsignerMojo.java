@@ -613,6 +613,10 @@ public abstract class AbstractJarsignerMojo
         int resultCode = 0;
         for ( int attempt = 0; attempt < maxTries; attempt++ )
         {
+            if ( attempt > 0 )
+            {
+                getLog().info( "retry attempt: " + ( attempt + 1 ) );
+            }
             JavaToolResult result = jarSigner.execute( request );
             resultCode = result.getExitCode();
             commandLine = result.getCommandline();
