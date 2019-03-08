@@ -256,8 +256,6 @@ public abstract class AbstractJarsignerMojo
     private SecDispatcher securityDispatcher;
 
     /**
-     * @since 1.4
-     *
      * How many times to try to sign or verify a jar (assuming each previous attempt is a failure).
      *
      * This option may be desirable if you are using a Time Stamp Authority,
@@ -267,18 +265,33 @@ public abstract class AbstractJarsignerMojo
      *
      * "0" and <0 we be treated as 1 (because using "skip" is accepted and encouraged,
      * and an infinite retry loop is undesirable).
+     *
+     * @since 3.0.1
      */
     @Parameter( property = "jarsigner.maxTries", defaultValue = "1" )
     private int maxTries;
 
+    /**
+     * Delay in seconds after a faild attempt except the last one.
+     *
+     * @since 3.0.1
+     */
+    @Parameter( property = "jarsigner.retryDelay", defaultValue = "0" )
+    private int retryDelay;
+
+    @Override
     public final void execute()
         throws MojoExecutionException
     {
         if ( !this.skip )
         {
-            if (maxTries <= 0)
+            if ( maxTries <= 0 )
             {
                 maxTries = 1;
+            }
+            if ( retryDelay < 0 )
+            {
+                retryDelay = 0;
             }
             Toolchain toolchain = getToolchain();
 
@@ -577,7 +590,7 @@ public abstract class AbstractJarsignerMojo
 
         try
         {
-            sign(request, maxTries);
+            sign( request, maxTries );
         }
         catch ( JavaToolException e )
         {
@@ -594,15 +607,30 @@ public abstract class AbstractJarsignerMojo
      * @throws JavaToolException
      * @throws MojoExecutionException
      */
-    private void sign(JarSignerRequest request, int maxTries) throws JavaToolException, MojoExecutionException {
+    private void sign( JarSignerRequest request, int maxTries ) throws JavaToolException, MojoExecutionException
+    {
         Commandline commandLine = null;
         int resultCode = 0;
-        for (int attempt = 0; attempt < maxTries; attempt++) {
+        for ( int attempt = 0; attempt < maxTries; attempt++ )
+        {
             JavaToolResult result = jarSigner.execute( request );
             resultCode = result.getExitCode();
             commandLine = result.getCommandline();
-            if (resultCode == 0) {
+            if ( resultCode == 0 )
+            {
                 return;
+            }
+            else if ( retryDelay > 0 && attempt < maxTries - 1 ) // do not wait after last attempt
+            {
+                getLog().info( "delaying after failed attempt for " + retryDelay + " sec" );
+                try
+                {
+                    Thread.sleep( retryDelay * 1000 );
+                }
+                catch ( InterruptedException e )
+                {
+                    // ignore
+                }
             }
         }
         throw new MojoExecutionException( getMessage( "failure",
