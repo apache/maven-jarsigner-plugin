@@ -71,7 +71,7 @@ Usage
   <<Since version 1.3>> you can encrypt <<<keypass>>> and <<<storepass>>> using the
   maven encryption mechanism.
 
-  See {{{Maven encryption guide}http://maven.apache.org/guides/mini/guide-encryption.html}}.
+  See {{{Maven encryption guide}https://maven.apache.org/guides/mini/guide-encryption.html}}.
 
 * Verifying the signature of a project artifact and attachments
 

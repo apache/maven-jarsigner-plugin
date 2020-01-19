@@ -55,63 +55,62 @@ import org.apache.maven.shared.utils.ReaderFactory;
  * Maven Jarsigner Plugin base class.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
- * @version $Id$
  */
 public abstract class AbstractJarsignerMojo
     extends AbstractMojo
 {
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.verbose", defaultValue = "false" )
     private boolean verbose;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.keystore" )
     private String keystore;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.storetype" )
     private String storetype;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.storepass" )
     private String storepass;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.providerName" )
     private String providerName;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.providerClass" )
     private String providerClass;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.providerArg" )
     private String providerArg;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.alias" )
     private String alias;
 
     /**
      * The maximum memory available to the JAR signer, e.g. <code>256M</code>. See <a
-     * href="http://java.sun.com/javase/6/docs/technotes/tools/windows/java.html#Xms">-Xmx</a> for more details.
+     * href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/java.html#Xms">-Xmx</a> for more details.
      */
     @Parameter( property = "jarsigner.maxMemory" )
     private String maxMemory;

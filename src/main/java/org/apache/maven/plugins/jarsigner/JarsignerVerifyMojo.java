@@ -34,7 +34,6 @@ import java.io.IOException;
  * Checks the signatures of a project artifact and attachments using jarsigner.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
- * @version $Id$
  * @since 1.0
  */
 @Mojo( name = "verify", defaultPhase = LifecyclePhase.VERIFY )
@@ -43,7 +42,7 @@ public class JarsignerVerifyMojo
 {
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.certs", defaultValue = "false" )
     private boolean certs;

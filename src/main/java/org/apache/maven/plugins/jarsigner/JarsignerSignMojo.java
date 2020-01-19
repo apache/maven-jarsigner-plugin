@@ -36,7 +36,6 @@ import java.io.IOException;
  * Signs a project artifact and attachments using jarsigner.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
- * @version $Id$
  * @since 1.0
  */
 @Mojo( name = "sign", defaultPhase = LifecyclePhase.PACKAGE )
@@ -45,13 +44,13 @@ public class JarsignerSignMojo
 {
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.keypass" )
     private String keypass;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
     @Parameter( property = "jarsigner.sigfile" )
     private String sigfile;
@@ -66,7 +65,7 @@ public class JarsignerSignMojo
     private boolean removeExistingSignatures;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      *
      * @since 1.3
      */
@@ -74,7 +73,7 @@ public class JarsignerSignMojo
     private String tsa;
 
     /**
-     * See <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      *
      * @since 1.3
      */
@@ -84,7 +83,7 @@ public class JarsignerSignMojo
     /**
      * Location of the extra certchain file.
      * See 
-     * <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">
+     * <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">
      *   Java SE 7 documentation
      * </a>
      * for more info.

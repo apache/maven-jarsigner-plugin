@@ -22,7 +22,7 @@ under the License.
 
 <faqs xmlns="http://maven.apache.org/FML/1.0.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/FML/1.0.1 http://maven.apache.org/xsd/fml-1.0.1.xsd"
+  xsi:schemaLocation="http://maven.apache.org/FML/1.0.1 https://maven.apache.org/xsd/fml-1.0.1.xsd"
   id="FAQ" title="Frequently Asked Questions">
   <part id="General">
    <faq id="about">
@@ -30,7 +30,7 @@ under the License.
      <answer>
        <p>
          You can read more about this tool in the offical guide:
-         <a href="http://java.sun.com/javase/6/docs/technotes/tools/solaris/jarsigner.html">jarsigner - JAR Signing and Verification Tool</a>.
+         <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jarsigner.html">jarsigner - JAR Signing and Verification Tool</a>.
        </p>
      </answer>
    </faq>
