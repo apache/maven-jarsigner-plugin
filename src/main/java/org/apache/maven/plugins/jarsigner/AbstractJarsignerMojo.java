@@ -627,9 +627,9 @@ public abstract class AbstractJarsignerMojo
     }
 
     /**
-     * FIXME tchemit-20123-11-13, need to find out how to do this...
-     * TODO remove the part with ToolchainManager lookup once we depend on
+     * the part with ToolchainManager lookup once we depend on
      * 2.0.9 (have it as prerequisite). Define as regular component field then.
+     * hint: check maven-compiler-plugin code
      *
      * @return Toolchain instance
      */
