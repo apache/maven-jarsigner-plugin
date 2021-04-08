@@ -38,7 +38,7 @@ import java.io.IOException;
  * @author <a href="cs@schulte.it">Christian Schulte</a>
  * @since 1.0
  */
-@Mojo( name = "sign", defaultPhase = LifecyclePhase.PACKAGE )
+@Mojo( name = "sign", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true )
 public class JarsignerSignMojo
     extends AbstractJarsignerMojo
 {
