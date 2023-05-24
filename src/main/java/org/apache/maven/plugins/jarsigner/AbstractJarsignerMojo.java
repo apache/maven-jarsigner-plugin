@@ -1,5 +1,3 @@
-package org.apache.maven.plugins.jarsigner;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.plugins.jarsigner;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,17 @@ package org.apache.maven.plugins.jarsigner;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.plugins.jarsigner;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ResourceBundle;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -30,6 +39,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
+import org.apache.maven.shared.utils.ReaderFactory;
 import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
@@ -40,85 +50,72 @@ import org.apache.maven.toolchain.ToolchainManager;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
-import org.apache.maven.shared.utils.ReaderFactory;
-
 /**
  * Maven Jarsigner Plugin base class.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
  */
-public abstract class AbstractJarsignerMojo
-    extends AbstractMojo
-{
+public abstract class AbstractJarsignerMojo extends AbstractMojo {
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.verbose", defaultValue = "false" )
+    @Parameter(property = "jarsigner.verbose", defaultValue = "false")
     private boolean verbose;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.keystore" )
+    @Parameter(property = "jarsigner.keystore")
     private String keystore;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.storetype" )
+    @Parameter(property = "jarsigner.storetype")
     private String storetype;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.storepass" )
+    @Parameter(property = "jarsigner.storepass")
     private String storepass;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.providerName" )
+    @Parameter(property = "jarsigner.providerName")
     private String providerName;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.providerClass" )
+    @Parameter(property = "jarsigner.providerClass")
     private String providerClass;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.providerArg" )
+    @Parameter(property = "jarsigner.providerArg")
     private String providerArg;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.alias" )
+    @Parameter(property = "jarsigner.alias")
     private String alias;
 
     /**
      * The maximum memory available to the JAR signer, e.g. <code>256M</code>. See <a
      * href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/java.html#Xms">-Xmx</a> for more details.
      */
-    @Parameter( property = "jarsigner.maxMemory" )
+    @Parameter(property = "jarsigner.maxMemory")
     private String maxMemory;
 
     /**
      * Archive to process. If set, neither the project artifact nor any attachments or archive sets are processed.
      */
-    @Parameter( property = "jarsigner.archive" )
+    @Parameter(property = "jarsigner.archive")
     private File archive;
 
     /**
@@ -126,7 +123,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "jarsigner.archiveDirectory" )
+    @Parameter(property = "jarsigner.archiveDirectory")
     private File archiveDirectory;
 
     /**
@@ -137,7 +134,7 @@ public abstract class AbstractJarsignerMojo
      * @since 1.1
      */
     @Parameter
-    private String[] includes = { "**/*.?ar" };
+    private String[] includes = {"**/*.?ar"};
 
     /**
      * The Ant-like exclusion patterns used to exclude JAR files from processing. The patterns must be relative to the
@@ -151,13 +148,13 @@ public abstract class AbstractJarsignerMojo
     /**
      * List of additional arguments to append to the jarsigner command line.
      */
-    @Parameter( property = "jarsigner.arguments" )
+    @Parameter(property = "jarsigner.arguments")
     private String[] arguments;
 
     /**
      * Set to {@code true} to disable the plugin.
      */
-    @Parameter( property = "jarsigner.skip", defaultValue = "false" )
+    @Parameter(property = "jarsigner.skip", defaultValue = "false")
     private boolean skip;
 
     /**
@@ -165,7 +162,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "jarsigner.processMainArtifact", defaultValue = "true" )
+    @Parameter(property = "jarsigner.processMainArtifact", defaultValue = "true")
     private boolean processMainArtifact;
 
     /**
@@ -174,7 +171,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "jarsigner.processAttachedArtifacts", defaultValue = "true" )
+    @Parameter(property = "jarsigner.processAttachedArtifacts", defaultValue = "true")
     private boolean processAttachedArtifacts;
 
     /**
@@ -183,7 +180,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.3
      */
-    @Parameter( property = "jarsigner.protectedAuthenticationPath", defaultValue = "false" )
+    @Parameter(property = "jarsigner.protectedAuthenticationPath", defaultValue = "false")
     private boolean protectedAuthenticationPath;
 
     /**
@@ -207,7 +204,7 @@ public abstract class AbstractJarsignerMojo
     /**
      * The Maven project.
      */
-    @Parameter( defaultValue = "${project}", readonly = true, required = true )
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
     /**
@@ -215,7 +212,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.5
      */
-    @Parameter( defaultValue = "${settings}", readonly = true, required = true )
+    @Parameter(defaultValue = "${settings}", readonly = true, required = true)
     private Settings settings;
 
     /**
@@ -223,7 +220,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.3
      */
-    @Parameter( defaultValue = "${project.basedir}" )
+    @Parameter(defaultValue = "${project.basedir}")
     private File workingDirectory;
 
     /**
@@ -237,7 +234,7 @@ public abstract class AbstractJarsignerMojo
      *
      * @since 1.3
      */
-    @Parameter( defaultValue = "${session}", readonly = true, required = true )
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
     /**
@@ -251,106 +248,80 @@ public abstract class AbstractJarsignerMojo
     /**
      * @since 1.3.2
      */
-    @Component( hint = "mng-4384" )
+    @Component(hint = "mng-4384")
     private SecDispatcher securityDispatcher;
 
-    public final void execute()
-        throws MojoExecutionException
-    {
-        if ( !this.skip )
-        {
+    public final void execute() throws MojoExecutionException {
+        if (!this.skip) {
             Toolchain toolchain = getToolchain();
 
-            if ( toolchain != null )
-            {
-                getLog().info( "Toolchain in maven-jarsigner-plugin: " + toolchain );
-                jarSigner.setToolchain( toolchain );
+            if (toolchain != null) {
+                getLog().info("Toolchain in maven-jarsigner-plugin: " + toolchain);
+                jarSigner.setToolchain(toolchain);
             }
 
             int processed = 0;
 
-            if ( this.archive != null )
-            {
-                processArchive( this.archive );
+            if (this.archive != null) {
+                processArchive(this.archive);
                 processed++;
-            }
-            else
-            {
-                if ( processMainArtifact )
-                {
-                    processed += processArtifact( this.project.getArtifact() ) ? 1 : 0;
+            } else {
+                if (processMainArtifact) {
+                    processed += processArtifact(this.project.getArtifact()) ? 1 : 0;
                 }
 
-                if ( processAttachedArtifacts )
-                {
+                if (processAttachedArtifacts) {
                     Collection<String> includes = new HashSet<>();
-                    if ( includeClassifiers != null )
-                    {
-                        includes.addAll( Arrays.asList( includeClassifiers ) );
+                    if (includeClassifiers != null) {
+                        includes.addAll(Arrays.asList(includeClassifiers));
                     }
 
                     Collection<String> excludes = new HashSet<>();
-                    if ( excludeClassifiers != null )
-                    {
-                        excludes.addAll( Arrays.asList( excludeClassifiers ) );
+                    if (excludeClassifiers != null) {
+                        excludes.addAll(Arrays.asList(excludeClassifiers));
                     }
 
-                    for ( Artifact artifact : this.project.getAttachedArtifacts() )
-                    {
-                        if ( !includes.isEmpty() && !includes.contains( artifact.getClassifier() ) )
-                        {
+                    for (Artifact artifact : this.project.getAttachedArtifacts()) {
+                        if (!includes.isEmpty() && !includes.contains(artifact.getClassifier())) {
                             continue;
                         }
 
-                        if ( excludes.contains( artifact.getClassifier() ) )
-                        {
+                        if (excludes.contains(artifact.getClassifier())) {
                             continue;
                         }
 
-                        processed += processArtifact( artifact ) ? 1 : 0;
+                        processed += processArtifact(artifact) ? 1 : 0;
                     }
-                }
-                else
-                {
-                    if ( verbose )
-                    {
-                        getLog().info( getMessage( "ignoringAttachments" ) );
-                    }
-                    else
-                    {
-                        getLog().debug( getMessage( "ignoringAttachments" ) );
+                } else {
+                    if (verbose) {
+                        getLog().info(getMessage("ignoringAttachments"));
+                    } else {
+                        getLog().debug(getMessage("ignoringAttachments"));
                     }
                 }
 
-                if ( archiveDirectory != null )
-                {
-                    String includeList = ( includes != null ) ? StringUtils.join( includes, "," ) : null;
-                    String excludeList = ( excludes != null ) ? StringUtils.join( excludes, "," ) : null;
+                if (archiveDirectory != null) {
+                    String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
+                    String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
 
                     List<File> jarFiles;
-                    try
-                    {
-                        jarFiles = FileUtils.getFiles( archiveDirectory, includeList, excludeList );
-                    }
-                    catch ( IOException e )
-                    {
-                        throw new MojoExecutionException( "Failed to scan archive directory for JARs: "
-                            + e.getMessage(), e );
+                    try {
+                        jarFiles = FileUtils.getFiles(archiveDirectory, includeList, excludeList);
+                    } catch (IOException e) {
+                        throw new MojoExecutionException(
+                                "Failed to scan archive directory for JARs: " + e.getMessage(), e);
                     }
 
-                    for ( File jarFile : jarFiles )
-                    {
-                        processArchive( jarFile );
+                    for (File jarFile : jarFiles) {
+                        processArchive(jarFile);
                         processed++;
                     }
                 }
             }
 
-            getLog().info( getMessage( "processed", processed ) );
-        }
-        else
-        {
-            getLog().info( getMessage( "disabled", null ) );
+            getLog().info(getMessage("processed", processed));
+        } else {
+            getLog().info(getMessage("disabled", null));
         }
     }
 
@@ -362,8 +333,7 @@ public abstract class AbstractJarsignerMojo
      * @throws MojoExecutionException if an exception occurs
      * @since 1.3
      */
-    protected abstract JarSignerRequest createRequest( File archive )
-        throws MojoExecutionException;
+    protected abstract JarSignerRequest createRequest(File archive) throws MojoExecutionException;
 
     /**
      * Gets a string representation of a {@code Commandline}.
@@ -375,25 +345,21 @@ public abstract class AbstractJarsignerMojo
      * @return The string representation of {@code commandLine}.
      * @throws NullPointerException if {@code commandLine} is {@code null}.
      */
-    protected String getCommandlineInfo( final Commandline commandLine )
-    {
-        if ( commandLine == null )
-        {
-            throw new NullPointerException( "commandLine" );
+    protected String getCommandlineInfo(final Commandline commandLine) {
+        if (commandLine == null) {
+            throw new NullPointerException("commandLine");
         }
 
         String commandLineInfo = commandLine.toString();
-        commandLineInfo = StringUtils.replace( commandLineInfo, this.storepass, "'*****'" );
+        commandLineInfo = StringUtils.replace(commandLineInfo, this.storepass, "'*****'");
         return commandLineInfo;
     }
 
-    public String getStoretype()
-    {
+    public String getStoretype() {
         return storetype;
     }
 
-    public String getStorepass()
-    {
+    public String getStorepass() {
         return storepass;
     }
 
@@ -403,9 +369,8 @@ public abstract class AbstractJarsignerMojo
      * @param artifact The artifact to check, may be <code>null</code>.
      * @return <code>true</code> if the artifact looks like a ZIP file, <code>false</code> otherwise.
      */
-    private boolean isZipFile( final Artifact artifact )
-    {
-        return artifact != null && artifact.getFile() != null && JarSignerUtil.isZipFile( artifact.getFile() );
+    private boolean isZipFile(final Artifact artifact) {
+        return artifact != null && artifact.getFile() != null && JarSignerUtil.isZipFile(artifact.getFile());
     }
 
     /**
@@ -416,31 +381,22 @@ public abstract class AbstractJarsignerMojo
      * @throws NullPointerException if {@code artifact} is {@code null}.
      * @throws MojoExecutionException if processing {@code artifact} fails.
      */
-    private boolean processArtifact( final Artifact artifact )
-        throws MojoExecutionException
-    {
-        if ( artifact == null )
-        {
-            throw new NullPointerException( "artifact" );
+    private boolean processArtifact(final Artifact artifact) throws MojoExecutionException {
+        if (artifact == null) {
+            throw new NullPointerException("artifact");
         }
 
         boolean processed = false;
 
-        if ( isZipFile( artifact ) )
-        {
-            processArchive( artifact.getFile() );
+        if (isZipFile(artifact)) {
+            processArchive(artifact.getFile());
 
             processed = true;
-        }
-        else
-        {
-            if ( this.verbose )
-            {
-                getLog().info( getMessage( "unsupported", artifact ) );
-            }
-            else if ( getLog().isDebugEnabled() )
-            {
-                getLog().debug( getMessage( "unsupported", artifact ) );
+        } else {
+            if (this.verbose) {
+                getLog().info(getMessage("unsupported", artifact));
+            } else if (getLog().isDebugEnabled()) {
+                getLog().debug(getMessage("unsupported", artifact));
             }
         }
 
@@ -453,9 +409,7 @@ public abstract class AbstractJarsignerMojo
      * @param archive The archive to process, must not be <code>null</code>.
      * @throws MojoExecutionException If pre-processing failed.
      */
-    protected void preProcessArchive( final File archive )
-        throws MojoExecutionException
-    {
+    protected void preProcessArchive(final File archive) throws MojoExecutionException {
         // default does nothing
     }
 
@@ -466,127 +420,112 @@ public abstract class AbstractJarsignerMojo
      * @throws NullPointerException if {@code archive} is {@code null}.
      * @throws MojoExecutionException if processing {@code archive} fails.
      */
-    private void processArchive( final File archive )
-        throws MojoExecutionException
-    {
-        if ( archive == null )
-        {
-            throw new NullPointerException( "archive" );
+    private void processArchive(final File archive) throws MojoExecutionException {
+        if (archive == null) {
+            throw new NullPointerException("archive");
         }
 
-        preProcessArchive( archive );
+        preProcessArchive(archive);
 
-        if ( this.verbose )
-        {
-            getLog().info( getMessage( "processing", archive ) );
-        }
-        else if ( getLog().isDebugEnabled() )
-        {
-            getLog().debug( getMessage( "processing", archive ) );
+        if (this.verbose) {
+            getLog().info(getMessage("processing", archive));
+        } else if (getLog().isDebugEnabled()) {
+            getLog().debug(getMessage("processing", archive));
         }
 
-        JarSignerRequest request = createRequest( archive );
-        request.setVerbose( verbose );
-        request.setAlias( alias );
-        request.setArchive( archive );
-        request.setKeystore( keystore );
-        request.setStoretype( storetype );
-        request.setProviderArg( providerArg );
-        request.setProviderClass( providerClass );
-        request.setProviderName( providerName );
-        request.setWorkingDirectory( workingDirectory );
-        request.setMaxMemory( maxMemory );
-        request.setProtectedAuthenticationPath( protectedAuthenticationPath );
+        JarSignerRequest request = createRequest(archive);
+        request.setVerbose(verbose);
+        request.setAlias(alias);
+        request.setArchive(archive);
+        request.setKeystore(keystore);
+        request.setStoretype(storetype);
+        request.setProviderArg(providerArg);
+        request.setProviderClass(providerClass);
+        request.setProviderName(providerName);
+        request.setWorkingDirectory(workingDirectory);
+        request.setMaxMemory(maxMemory);
+        request.setProtectedAuthenticationPath(protectedAuthenticationPath);
 
         // Preserves 'file.encoding' the plugin is executed with.
         final List<String> additionalArguments = new ArrayList<>();
 
         boolean fileEncodingSeen = false;
 
-        if ( this.arguments != null )
-        {
-            for ( final String argument : this.arguments )
-            {
-                if ( argument.trim().startsWith( "-J-Dfile.encoding=" ) )
-                {
+        if (this.arguments != null) {
+            for (final String argument : this.arguments) {
+                if (argument.trim().startsWith("-J-Dfile.encoding=")) {
                     fileEncodingSeen = true;
                 }
 
-                additionalArguments.add( argument );
+                additionalArguments.add(argument);
             }
         }
 
-        if ( !fileEncodingSeen )
-        {
-            additionalArguments.add( "-J-Dfile.encoding=" + ReaderFactory.FILE_ENCODING );
+        if (!fileEncodingSeen) {
+            additionalArguments.add("-J-Dfile.encoding=" + ReaderFactory.FILE_ENCODING);
         }
 
         // Adds proxy information.
-        if ( this.settings != null && this.settings.getActiveProxy() != null
-                 && StringUtils.isNotEmpty( this.settings.getActiveProxy().getHost() ) )
-        {
-            additionalArguments.add( "-J-Dhttp.proxyHost=" + this.settings.getActiveProxy().getHost() );
-            additionalArguments.add( "-J-Dhttps.proxyHost=" + this.settings.getActiveProxy().getHost() );
-            additionalArguments.add( "-J-Dftp.proxyHost=" + this.settings.getActiveProxy().getHost() );
+        if (this.settings != null
+                && this.settings.getActiveProxy() != null
+                && StringUtils.isNotEmpty(this.settings.getActiveProxy().getHost())) {
+            additionalArguments.add(
+                    "-J-Dhttp.proxyHost=" + this.settings.getActiveProxy().getHost());
+            additionalArguments.add(
+                    "-J-Dhttps.proxyHost=" + this.settings.getActiveProxy().getHost());
+            additionalArguments.add(
+                    "-J-Dftp.proxyHost=" + this.settings.getActiveProxy().getHost());
 
-            if ( this.settings.getActiveProxy().getPort() > 0 )
-            {
-                additionalArguments.add( "-J-Dhttp.proxyPort=" + this.settings.getActiveProxy().getPort() );
-                additionalArguments.add( "-J-Dhttps.proxyPort=" + this.settings.getActiveProxy().getPort() );
-                additionalArguments.add( "-J-Dftp.proxyPort=" + this.settings.getActiveProxy().getPort() );
+            if (this.settings.getActiveProxy().getPort() > 0) {
+                additionalArguments.add(
+                        "-J-Dhttp.proxyPort=" + this.settings.getActiveProxy().getPort());
+                additionalArguments.add(
+                        "-J-Dhttps.proxyPort=" + this.settings.getActiveProxy().getPort());
+                additionalArguments.add(
+                        "-J-Dftp.proxyPort=" + this.settings.getActiveProxy().getPort());
             }
 
-            if ( StringUtils.isNotEmpty( this.settings.getActiveProxy().getNonProxyHosts() ) )
-            {
-                additionalArguments.add( "-J-Dhttp.nonProxyHosts=\""
-                                             + this.settings.getActiveProxy().getNonProxyHosts() + "\"" );
+            if (StringUtils.isNotEmpty(this.settings.getActiveProxy().getNonProxyHosts())) {
+                additionalArguments.add("-J-Dhttp.nonProxyHosts=\""
+                        + this.settings.getActiveProxy().getNonProxyHosts() + "\"");
 
-                additionalArguments.add( "-J-Dftp.nonProxyHosts=\""
-                                             + this.settings.getActiveProxy().getNonProxyHosts() + "\"" );
-
+                additionalArguments.add("-J-Dftp.nonProxyHosts=\""
+                        + this.settings.getActiveProxy().getNonProxyHosts() + "\"");
             }
         }
 
-        request.setArguments( !additionalArguments.isEmpty()
-                                  ? additionalArguments.toArray( new String[ additionalArguments.size() ] )
-                                  : null );
+        request.setArguments(
+                !additionalArguments.isEmpty()
+                        ? additionalArguments.toArray(new String[additionalArguments.size()])
+                        : null);
 
         // Special handling for passwords through the Maven Security Dispatcher
-        request.setStorepass( decrypt( storepass ) );
+        request.setStorepass(decrypt(storepass));
 
-        try
-        {
-            JavaToolResult result = jarSigner.execute( request );
+        try {
+            JavaToolResult result = jarSigner.execute(request);
 
             Commandline commandLine = result.getCommandline();
 
             int resultCode = result.getExitCode();
 
-            if ( resultCode != 0 )
-            {
+            if (resultCode != 0) {
                 // CHECKSTYLE_OFF: LineLength
-                throw new MojoExecutionException( getMessage( "failure", getCommandlineInfo( commandLine ), resultCode ) );
+                throw new MojoExecutionException(getMessage("failure", getCommandlineInfo(commandLine), resultCode));
                 // CHECKSTYLE_ON: LineLength
             }
 
-        }
-        catch ( JavaToolException e )
-        {
-            throw new MojoExecutionException( getMessage( "commandLineException", e.getMessage() ), e );
+        } catch (JavaToolException e) {
+            throw new MojoExecutionException(getMessage("commandLineException", e.getMessage()), e);
         }
     }
 
-    protected String decrypt( String encoded )
-        throws MojoExecutionException
-    {
-        try
-        {
-            return securityDispatcher.decrypt( encoded );
-        }
-        catch ( SecDispatcherException e )
-        {
-            getLog().error( "error using security dispatcher: " + e.getMessage(), e );
-            throw new MojoExecutionException( "error using security dispatcher: " + e.getMessage(), e );
+    protected String decrypt(String encoded) throws MojoExecutionException {
+        try {
+            return securityDispatcher.decrypt(encoded);
+        } catch (SecDispatcherException e) {
+            getLog().error("error using security dispatcher: " + e.getMessage(), e);
+            throw new MojoExecutionException("error using security dispatcher: " + e.getMessage(), e);
         }
     }
 
@@ -601,29 +540,24 @@ public abstract class AbstractJarsignerMojo
      *             if there is no message available matching {@code key} or accessing
      *             the resource bundle fails.
      */
-    private String getMessage( final String key, final Object[] args )
-    {
-        if ( key == null )
-        {
-            throw new NullPointerException( "key" );
+    private String getMessage(final String key, final Object[] args) {
+        if (key == null) {
+            throw new NullPointerException("key");
         }
 
-        return new MessageFormat( ResourceBundle.getBundle( "jarsigner" ).getString( key ) ).format( args );
+        return new MessageFormat(ResourceBundle.getBundle("jarsigner").getString(key)).format(args);
     }
 
-    private String getMessage( final String key )
-    {
-        return getMessage( key, null );
+    private String getMessage(final String key) {
+        return getMessage(key, null);
     }
 
-    String getMessage( final String key, final Object arg )
-    {
-        return getMessage( key, new Object[] { arg } );
+    String getMessage(final String key, final Object arg) {
+        return getMessage(key, new Object[] {arg});
     }
 
-    private String getMessage( final String key, final Object arg1, final Object arg2 )
-    {
-        return getMessage( key, new Object[] { arg1, arg2 } );
+    private String getMessage(final String key, final Object arg1, final Object arg2) {
+        return getMessage(key, new Object[] {arg1, arg2});
     }
 
     /**
@@ -633,12 +567,10 @@ public abstract class AbstractJarsignerMojo
      *
      * @return Toolchain instance
      */
-    private Toolchain getToolchain()
-    {
+    private Toolchain getToolchain() {
         Toolchain tc = null;
-        if ( toolchainManager != null )
-        {
-            tc = toolchainManager.getToolchainFromBuildContext( "jdk", session );
+        if (toolchainManager != null) {
+            tc = toolchainManager.getToolchainFromBuildContext("jdk", session);
         }
 
         return tc;

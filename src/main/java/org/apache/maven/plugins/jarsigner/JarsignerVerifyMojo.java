@@ -1,5 +1,3 @@
-package org.apache.maven.plugins.jarsigner;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.plugins.jarsigner;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,10 @@ package org.apache.maven.plugins.jarsigner;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.plugins.jarsigner;
+
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -27,24 +29,19 @@ import org.apache.maven.shared.jarsigner.JarSignerRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * Checks the signatures of a project artifact and attachments using jarsigner.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
  * @since 1.0
  */
-@Mojo( name = "verify", defaultPhase = LifecyclePhase.VERIFY )
-public class JarsignerVerifyMojo
-    extends AbstractJarsignerMojo
-{
+@Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY)
+public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.certs", defaultValue = "false" )
+    @Parameter(property = "jarsigner.certs", defaultValue = "false")
     private boolean certs;
 
     /**
@@ -55,45 +52,37 @@ public class JarsignerVerifyMojo
      *
      * @since 1.3
      **/
-    @Parameter( property = "jarsigner.errorWhenNotSigned", defaultValue = "false" )
+    @Parameter(property = "jarsigner.errorWhenNotSigned", defaultValue = "false")
     private boolean errorWhenNotSigned;
 
     /**
      * {@inheritDoc}
      */
-    protected JarSignerRequest createRequest( File archive )
-    {
+    protected JarSignerRequest createRequest(File archive) {
         JarSignerVerifyRequest request = new JarSignerVerifyRequest();
-        request.setCerts( certs );
+        request.setCerts(certs);
         return request;
     }
 
     @Override
-    protected void preProcessArchive( File archive )
-        throws MojoExecutionException
-    {
-        super.preProcessArchive( archive );
+    protected void preProcessArchive(File archive) throws MojoExecutionException {
+        super.preProcessArchive(archive);
 
-        if ( errorWhenNotSigned )
-        {
+        if (errorWhenNotSigned) {
 
             // check archive if signed
             boolean archiveSigned;
-            try
-            {
-                archiveSigned = JarSignerUtil.isArchiveSigned( archive );
-            }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Failed to check if archive " + archive + " is signed: "
-                    + e.getMessage(), e );
+            try {
+                archiveSigned = JarSignerUtil.isArchiveSigned(archive);
+            } catch (IOException e) {
+                throw new MojoExecutionException(
+                        "Failed to check if archive " + archive + " is signed: " + e.getMessage(), e);
             }
 
-            if ( !archiveSigned )
-            {
+            if (!archiveSigned) {
 
                 // fails, archive must be signed
-                throw new MojoExecutionException( getMessage( "archiveNotSigned", archive ) );
+                throw new MojoExecutionException(getMessage("archiveNotSigned", archive));
             }
         }
     }
