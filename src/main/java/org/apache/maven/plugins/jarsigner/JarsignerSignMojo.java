@@ -1,5 +1,3 @@
-package org.apache.maven.plugins.jarsigner;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.plugins.jarsigner;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,10 @@ package org.apache.maven.plugins.jarsigner;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.plugins.jarsigner;
+
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,30 +31,25 @@ import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.cli.Commandline;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * Signs a project artifact and attachments using jarsigner.
  *
  * @author <a href="cs@schulte.it">Christian Schulte</a>
  * @since 1.0
  */
-@Mojo( name = "sign", defaultPhase = LifecyclePhase.PACKAGE )
-public class JarsignerSignMojo
-    extends AbstractJarsignerMojo
-{
+@Mojo(name = "sign", defaultPhase = LifecyclePhase.PACKAGE)
+public class JarsignerSignMojo extends AbstractJarsignerMojo {
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.keypass" )
+    @Parameter(property = "jarsigner.keypass")
     private String keypass;
 
     /**
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      */
-    @Parameter( property = "jarsigner.sigfile" )
+    @Parameter(property = "jarsigner.sigfile")
     private String sigfile;
 
     /**
@@ -61,7 +58,7 @@ public class JarsignerSignMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "jarsigner.removeExistingSignatures", defaultValue = "false" )
+    @Parameter(property = "jarsigner.removeExistingSignatures", defaultValue = "false")
     private boolean removeExistingSignatures;
 
     /**
@@ -69,7 +66,7 @@ public class JarsignerSignMojo
      *
      * @since 1.3
      */
-    @Parameter( property = "jarsigner.tsa" )
+    @Parameter(property = "jarsigner.tsa")
     private String tsa;
 
     /**
@@ -77,48 +74,40 @@ public class JarsignerSignMojo
      *
      * @since 1.3
      */
-    @Parameter( property = "jarsigner.tsacert" )
+    @Parameter(property = "jarsigner.tsacert")
     private String tsacert;
-    
+
     /**
      * Location of the extra certchain file.
-     * See 
+     * See
      * <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">
      *   Java SE 7 documentation
      * </a>
      * for more info.
-     * 
+     *
      * @since 1.5
      */
-    @Parameter( property = "jarsigner.certchain", readonly = true, required = false )
+    @Parameter(property = "jarsigner.certchain", readonly = true, required = false)
     private File certchain;
 
     @Override
-    protected String getCommandlineInfo( final Commandline commandLine )
-    {
+    protected String getCommandlineInfo(final Commandline commandLine) {
         String commandLineInfo = commandLine != null ? commandLine.toString() : null;
 
-        if ( commandLineInfo != null )
-        {
-            commandLineInfo = StringUtils.replace( commandLineInfo, this.keypass, "'*****'" );
+        if (commandLineInfo != null) {
+            commandLineInfo = StringUtils.replace(commandLineInfo, this.keypass, "'*****'");
         }
 
         return commandLineInfo;
     }
 
     @Override
-    protected void preProcessArchive( final File archive )
-        throws MojoExecutionException
-    {
-        if ( removeExistingSignatures )
-        {
-            try
-            {
-                JarSignerUtil.unsignArchive( archive );
-            }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Failed to unsign archive " + archive + ": " + e.getMessage(), e );
+    protected void preProcessArchive(final File archive) throws MojoExecutionException {
+        if (removeExistingSignatures) {
+            try {
+                JarSignerUtil.unsignArchive(archive);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to unsign archive " + archive + ": " + e.getMessage(), e);
             }
         }
     }
@@ -126,18 +115,15 @@ public class JarsignerSignMojo
     /**
      * {@inheritDoc}
      */
-    protected JarSignerRequest createRequest( File archive )
-        throws MojoExecutionException
-    {
+    protected JarSignerRequest createRequest(File archive) throws MojoExecutionException {
         JarSignerSignRequest request = new JarSignerSignRequest();
-        request.setSigfile( sigfile );
-        request.setTsaLocation( tsa );
-        request.setTsaAlias( tsacert );
-        request.setCertchain( certchain );
+        request.setSigfile(sigfile);
+        request.setTsaLocation(tsa);
+        request.setTsaAlias(tsacert);
+        request.setCertchain(certchain);
 
         // Special handling for passwords through the Maven Security Dispatcher
-        request.setKeypass( decrypt( keypass ) );
+        request.setKeypass(decrypt(keypass));
         return request;
     }
-
 }
