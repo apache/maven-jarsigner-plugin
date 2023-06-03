@@ -28,7 +28,7 @@ under the License.
   <packaging>jar</packaging>
 
   <description>
-    Tests that verification of a tampared JAR fails.
+    Tests that verification of a tampered JAR fails.
   </description>
 
   <properties>
