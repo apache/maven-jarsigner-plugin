@@ -63,6 +63,33 @@ under the License.
         <version>@project.version@</version>
         <configuration>
           <archive>tampered.jar</archive>
+<!-- 
+The tampered.jar is a jar file that originally was correctly signed, but then was "tampered with"
+by truncating the Main.class file. It was built with these commands:
+
+keytool -genkeypair -v \
+  -keystore codesignkeystore.jks \
+  -keyalg RSA \
+  -keysize 2048 \
+  -alias codesignkey \
+  -dname "C=US, O=ExampleOrg, ST=Washington, L=Seattle, OU=None, CN=www.example.com" \
+  -storepass password1234 \
+  -keypass password1234 \
+  -validity 18250
+
+echo 'public class Main { public static void main(String[] args) { System.out.println("Hello, World!"); } }' > Main.java
+javac Main.java
+jar cfe tampered.jar Main Main.class
+jarsigner -keystore codesignkeystore.jks -storepass password1234 -keypass password1234 tampered.jar codesignkey
+
+unzip tampered.jar -d tmp_jar_directory
+rm tampered.jar
+rm tmp_jar_directory/Main.class
+touch tmp_jar_directory/Main.class
+
+(cd tmp_jar_directory && zip -r ../tampered.jar .)
+
+-->
         </configuration>
         <executions>
           <execution>
