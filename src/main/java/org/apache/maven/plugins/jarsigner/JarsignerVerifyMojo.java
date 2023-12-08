@@ -25,9 +25,12 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
+import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
+import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
 
 /**
  * Checks the signatures of a project artifact and attachments using jarsigner.
@@ -58,6 +61,7 @@ public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
     /**
      * {@inheritDoc}
      */
+    @Override
     protected JarSignerRequest createRequest(File archive) {
         JarSignerVerifyRequest request = new JarSignerVerifyRequest();
         request.setCerts(certs);
@@ -84,6 +88,17 @@ public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
                 // fails, archive must be signed
                 throw new MojoExecutionException(getMessage("archiveNotSigned", archive));
             }
+        }
+    }
+
+    @Override
+    protected void executeJarSigner(JarSigner jarSigner, JarSignerRequest request)
+            throws JavaToolException, MojoExecutionException {
+        JavaToolResult result = jarSigner.execute(request);
+        int resultCode = result.getExitCode();
+        if (resultCode != 0) {
+            throw new MojoExecutionException(
+                    getMessage("failure", getCommandlineInfo(result.getCommandline()), resultCode));
         }
     }
 }
