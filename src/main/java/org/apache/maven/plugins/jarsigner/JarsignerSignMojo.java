@@ -78,16 +78,12 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     private String tsacert;
 
     /**
-     * Location of the extra certchain file.
-     * See
-     * <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">
-     *   Java SE 7 documentation
-     * </a>
-     * for more info.
+     * Location of the extra certificate chain file. See
+     * <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
      *
      * @since 1.5
      */
-    @Parameter(property = "jarsigner.certchain", readonly = true, required = false)
+    @Parameter(property = "jarsigner.certchain", required = false)
     private File certchain;
 
     @Override
