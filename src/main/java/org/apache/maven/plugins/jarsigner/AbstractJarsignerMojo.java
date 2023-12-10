@@ -146,7 +146,21 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     private String[] excludes = {};
 
     /**
-     * List of additional arguments to append to the jarsigner command line.
+     * List of additional arguments to append to the jarsigner command line. Each argument should be specified as a
+     * separate element. For example, to specify the name of the signed jar, two elements are needed:
+     * <ul>
+     *     <li>Alternative using the command line: {@code -Djarsigner.arguments="-signedjar,my-project_signed.jar"}</li>
+     *     <li>Alternative using the Maven POM configuration:</li>
+     * </ul>
+     * <pre>
+     * {@code
+     * <configuration>
+     *     <arguments>
+     *         <argument>-signedjar</argument>
+     *         <argument>my-project_signed.jar</argument>
+     *     </arguments>
+     * </configuration>
+     * }</pre>
      */
     @Parameter(property = "jarsigner.arguments")
     private String[] arguments;
