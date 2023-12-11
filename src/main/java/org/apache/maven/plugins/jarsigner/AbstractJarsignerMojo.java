@@ -43,7 +43,6 @@ import org.apache.maven.shared.utils.ReaderFactory;
 import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
-import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
@@ -251,78 +250,80 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     @Component(hint = "mng-4384")
     private SecDispatcher securityDispatcher;
 
+    @Override
     public final void execute() throws MojoExecutionException {
-        if (!this.skip) {
-            Toolchain toolchain = getToolchain();
-
-            if (toolchain != null) {
-                getLog().info("Toolchain in maven-jarsigner-plugin: " + toolchain);
-                jarSigner.setToolchain(toolchain);
-            }
-
-            int processed = 0;
-
-            if (this.archive != null) {
-                processArchive(this.archive);
-                processed++;
-            } else {
-                if (processMainArtifact) {
-                    processed += processArtifact(this.project.getArtifact()) ? 1 : 0;
-                }
-
-                if (processAttachedArtifacts) {
-                    Collection<String> includes = new HashSet<>();
-                    if (includeClassifiers != null) {
-                        includes.addAll(Arrays.asList(includeClassifiers));
-                    }
-
-                    Collection<String> excludes = new HashSet<>();
-                    if (excludeClassifiers != null) {
-                        excludes.addAll(Arrays.asList(excludeClassifiers));
-                    }
-
-                    for (Artifact artifact : this.project.getAttachedArtifacts()) {
-                        if (!includes.isEmpty() && !includes.contains(artifact.getClassifier())) {
-                            continue;
-                        }
-
-                        if (excludes.contains(artifact.getClassifier())) {
-                            continue;
-                        }
-
-                        processed += processArtifact(artifact) ? 1 : 0;
-                    }
-                } else {
-                    if (verbose) {
-                        getLog().info(getMessage("ignoringAttachments"));
-                    } else {
-                        getLog().debug(getMessage("ignoringAttachments"));
-                    }
-                }
-
-                if (archiveDirectory != null) {
-                    String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
-                    String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
-
-                    List<File> jarFiles;
-                    try {
-                        jarFiles = FileUtils.getFiles(archiveDirectory, includeList, excludeList);
-                    } catch (IOException e) {
-                        throw new MojoExecutionException(
-                                "Failed to scan archive directory for JARs: " + e.getMessage(), e);
-                    }
-
-                    for (File jarFile : jarFiles) {
-                        processArchive(jarFile);
-                        processed++;
-                    }
-                }
-            }
-
-            getLog().info(getMessage("processed", processed));
-        } else {
-            getLog().info(getMessage("disabled", null));
+        if (this.skip) {
+            getLog().info(getMessage("disabled"));
+            return;
         }
+
+        validateParameters();
+
+        Toolchain toolchain = getToolchain();
+        if (toolchain != null) {
+            getLog().info("Toolchain in maven-jarsigner-plugin: " + toolchain);
+            jarSigner.setToolchain(toolchain);
+        }
+
+        int processed = 0;
+
+        if (this.archive != null) {
+            processArchive(this.archive);
+            processed++;
+        } else {
+            if (processMainArtifact) {
+                processed += processArtifact(this.project.getArtifact()) ? 1 : 0;
+            }
+
+            if (processAttachedArtifacts) {
+                Collection<String> includes = new HashSet<>();
+                if (includeClassifiers != null) {
+                    includes.addAll(Arrays.asList(includeClassifiers));
+                }
+
+                Collection<String> excludes = new HashSet<>();
+                if (excludeClassifiers != null) {
+                    excludes.addAll(Arrays.asList(excludeClassifiers));
+                }
+
+                for (Artifact artifact : this.project.getAttachedArtifacts()) {
+                    if (!includes.isEmpty() && !includes.contains(artifact.getClassifier())) {
+                        continue;
+                    }
+
+                    if (excludes.contains(artifact.getClassifier())) {
+                        continue;
+                    }
+
+                    processed += processArtifact(artifact) ? 1 : 0;
+                }
+            } else {
+                if (verbose) {
+                    getLog().info(getMessage("ignoringAttachments"));
+                } else {
+                    getLog().debug(getMessage("ignoringAttachments"));
+                }
+            }
+
+            if (archiveDirectory != null) {
+                String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
+                String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
+
+                List<File> jarFiles;
+                try {
+                    jarFiles = FileUtils.getFiles(archiveDirectory, includeList, excludeList);
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Failed to scan archive directory for JARs: " + e.getMessage(), e);
+                }
+
+                for (File jarFile : jarFiles) {
+                    processArchive(jarFile);
+                    processed++;
+                }
+            }
+        }
+
+        getLog().info(getMessage("processed", processed));
     }
 
     /**
@@ -410,7 +411,16 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
      * @throws MojoExecutionException If pre-processing failed.
      */
     protected void preProcessArchive(final File archive) throws MojoExecutionException {
-        // default does nothing
+        // Default implementation does nothing
+    }
+
+    /**
+     * Validate the user supplied configuration/parameters.
+     *
+     * @throws MojoExecutionException if the user supplied configuration make further execution impossible
+     */
+    protected void validateParameters() throws MojoExecutionException {
+        // Default implementation does nothing
     }
 
     /**
@@ -503,22 +513,22 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         request.setStorepass(decrypt(storepass));
 
         try {
-            JavaToolResult result = jarSigner.execute(request);
-
-            Commandline commandLine = result.getCommandline();
-
-            int resultCode = result.getExitCode();
-
-            if (resultCode != 0) {
-                // CHECKSTYLE_OFF: LineLength
-                throw new MojoExecutionException(getMessage("failure", getCommandlineInfo(commandLine), resultCode));
-                // CHECKSTYLE_ON: LineLength
-            }
-
+            executeJarSigner(jarSigner, request);
         } catch (JavaToolException e) {
             throw new MojoExecutionException(getMessage("commandLineException", e.getMessage()), e);
         }
     }
+
+    /**
+     * Executes jarsigner (execute signing or verification for a jar file).
+     *
+     * @param jarSigner the JarSigner execution interface
+     * @param request the JarSignerRequest with parameters JarSigner should use
+     * @throws JavaToolException if jarsigner could not be invoked
+     * @throws MojoExecutionException if the invocation of jarsigner succeeded, but returned a non-zero exit code
+     */
+    protected abstract void executeJarSigner(JarSigner jarSigner, JarSignerRequest request)
+            throws JavaToolException, MojoExecutionException;
 
     protected String decrypt(String encoded) throws MojoExecutionException {
         try {
@@ -532,32 +542,20 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     /**
      * Gets a message for a given key from the resource bundle backing the implementation.
      *
-     * @param key The key of the message to return.
-     * @param args Arguments to format the message with or {@code null}.
-     * @return The message with key {@code key} from the resource bundle backing the implementation.
-     * @throws NullPointerException if {@code key} is {@code null}.
+     * @param key the key of the message to return
+     * @param args arguments to format the message with
+     * @return the message with key {@code key} from the resource bundle backing the implementation
+     * @throws NullPointerException if {@code key} is {@code null}
      * @throws java.util.MissingResourceException
      *             if there is no message available matching {@code key} or accessing
-     *             the resource bundle fails.
+     *             the resource bundle fails
      */
-    private String getMessage(final String key, final Object[] args) {
+    String getMessage(final String key, final Object... args) {
         if (key == null) {
             throw new NullPointerException("key");
         }
 
         return new MessageFormat(ResourceBundle.getBundle("jarsigner").getString(key)).format(args);
-    }
-
-    private String getMessage(final String key) {
-        return getMessage(key, null);
-    }
-
-    String getMessage(final String key, final Object arg) {
-        return getMessage(key, new Object[] {arg});
-    }
-
-    private String getMessage(final String key, final Object arg1, final Object arg2) {
-        return getMessage(key, new Object[] {arg1, arg2});
     }
 
     /**
