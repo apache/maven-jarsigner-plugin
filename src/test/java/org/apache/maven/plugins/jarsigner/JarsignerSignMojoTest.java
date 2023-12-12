@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.maven.artifact.Artifact;
@@ -34,6 +35,7 @@ import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +52,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -61,6 +64,7 @@ public class JarsignerSignMojoTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    private Locale originalLocale;
     private MavenProject project = mock(MavenProject.class);
     private JarSigner jarSigner = mock(JarSigner.class);
     private File projectDir;
@@ -70,11 +74,18 @@ public class JarsignerSignMojoTest {
 
     @Before
     public void setUp() throws Exception {
+        originalLocale = Locale.getDefault();
+        Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = folder.newFolder("dummy-project");
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
+    }
+
+    @After
+    public void tearDown() {
+        Locale.setDefault(originalLocale);
     }
 
     /** Standard Java project with nothing special configured */
@@ -400,5 +411,55 @@ public class JarsignerSignMojoTest {
         verify(jarSigner)
                 .execute(MockitoHamcrest.argThat(
                         RequestMatchers.hasArguments(new String[] {"-J-Dfile.encoding=ISO-8859-1", "argument2"})));
+    }
+
+    /**
+     * Test what is logged when verbose=true. The sign-mojo.html documentation indicates that the verbose flag should
+     * be sent in to the jarsigner command. That is true, but in addition to this it is also (undocumented) used to
+     * control the level of some logging events.
+     */
+    @Test
+    public void testLoggingVerboseTrue() throws Exception {
+        when(log.isDebugEnabled()).thenReturn(true);
+        Artifact mainArtifact = TestArtifacts.createPomArtifact(projectDir, "pom.xml");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        configuration.put("processAttachedArtifacts", "false");
+        File archiveDirectory = new File(projectDir, "my_archive_dir");
+        archiveDirectory.mkdir();
+        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive1.jar"));
+        configuration.put("archiveDirectory", archiveDirectory.getPath());
+        configuration.put("verbose", "true");
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        verify(log, times(1)).info(contains("Unsupported artifact "));
+        verify(log, times(1)).info(contains("Forcibly ignoring attached artifacts"));
+        verify(log, times(1)).info(contains("Processing "));
+        verify(log, times(1)).info(contains("1 archive(s) processed"));
+    }
+
+    /** Test what is logged when verbose=false */
+    @Test
+    public void testLoggingVerboseFalse() throws Exception {
+        when(log.isDebugEnabled()).thenReturn(true);
+        Artifact mainArtifact = TestArtifacts.createPomArtifact(projectDir, "pom.xml");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        configuration.put("processAttachedArtifacts", "false");
+        File archiveDirectory = new File(projectDir, "my_archive_dir");
+        archiveDirectory.mkdir();
+        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive1.jar"));
+        configuration.put("archiveDirectory", archiveDirectory.getPath());
+        configuration.put("verbose", "false");
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        verify(log, times(1)).debug(contains("Unsupported artifact "));
+        verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
+        verify(log, times(1)).debug(contains("Processing "));
+        verify(log, times(1)).info(contains("1 archive(s) processed"));
     }
 }

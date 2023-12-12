@@ -21,6 +21,13 @@ package org.apache.maven.plugins.jarsigner;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -115,6 +122,17 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     @Parameter(property = "jarsigner.maxRetryDelaySeconds", defaultValue = "0")
     private int maxRetryDelaySeconds;
 
+    /**
+     * Maximum number of parallel threads to use when signing jar files. Increases performance when signing multiple jar
+     * files, especially when network operations are used during signing, for example when using a Time Stamp Authority
+     * or network based PKCS11 HSM solution for storing code signing keys. Note: the logging from the signing process
+     * will be interleaved, and harder to read, when using many threads.
+     *
+     * @since 3.1.0
+     */
+    @Parameter(property = "jarsigner.threadCount", defaultValue = "1")
+    private int threadCount;
+
     /** Current WaitStrategy, to allow for sleeping after a signing failure. */
     private WaitStrategy waitStrategy = this::defaultWaitStrategy;
 
@@ -156,6 +174,11 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
             getLog().warn(getMessage("invalidMaxRetryDelaySeconds", maxRetryDelaySeconds));
             maxRetryDelaySeconds = 0;
         }
+
+        if (threadCount < 1) {
+            getLog().warn(getMessage("invalidThreadCount", threadCount));
+            threadCount = 1;
+        }
     }
 
     /**
@@ -175,11 +198,41 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     }
 
     /**
+     * {@inheritDoc} Processing of files may be parallelized for increased performance.
+     */
+    @Override
+    protected void processArchives(List<File> archives) throws MojoExecutionException {
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        List<Future<Void>> futures = archives.stream()
+                .map(file -> executor.submit((Callable<Void>) () -> {
+                    processArchive(file);
+                    return null;
+                }))
+                .collect(Collectors.toList());
+        try {
+            for (Future<Void> future : futures) {
+                future.get(); // Wait for completion. Result ignored, but may raise any Exception
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MojoExecutionException("Thread interrupted while waiting for jarsigner to complete", e);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof MojoExecutionException) {
+                throw (MojoExecutionException) e.getCause();
+            }
+            throw new MojoExecutionException("Error processing archives", e);
+        } finally {
+            // Shutdown of thread pool. If an Exception occurred, remaining threads will be aborted "best effort"
+            executor.shutdownNow();
+        }
+    }
+
+    /**
      * {@inheritDoc}
      *
      * Will retry signing up to maxTries times if it fails.
      *
-     * @throws MojoExecutionException If all signing attempts fail.
+     * @throws MojoExecutionException if all signing attempts fail
      */
     @Override
     protected void executeJarSigner(JarSigner jarSigner, JarSignerRequest request)
