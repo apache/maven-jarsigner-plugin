@@ -62,7 +62,7 @@ public class JarsignerSignMojoRetryTest {
     private MavenProject project = mock(MavenProject.class);
     private JarSigner jarSigner = mock(JarSigner.class);
     private WaitStrategy waitStrategy = mock(WaitStrategy.class);
-    private File dummyMavenProjectDir;
+    private File projectDir;
     private Map<String, String> configuration = new LinkedHashMap<>();
     private Log log;
     private MojoTestCreator<JarsignerSignMojo> mojoTestCreator;
@@ -71,12 +71,12 @@ public class JarsignerSignMojoRetryTest {
     public void setUp() throws Exception {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
-        dummyMavenProjectDir = folder.newFolder("dummy-project");
-        mojoTestCreator = new MojoTestCreator<JarsignerSignMojo>(
-                JarsignerSignMojo.class, project, dummyMavenProjectDir, jarSigner);
+        projectDir = folder.newFolder("dummy-project");
+        mojoTestCreator =
+                new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
-        Artifact mainArtifact = TestArtifacts.createJarArtifact(dummyMavenProjectDir, "my-project.jar");
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
         when(project.getArtifact()).thenReturn(mainArtifact);
     }
 
