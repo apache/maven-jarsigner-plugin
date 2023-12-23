@@ -33,6 +33,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.jarsigner.TsaSelector.TsaServer;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerRequest;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
@@ -73,20 +74,107 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     private boolean removeExistingSignatures;
 
     /**
+     * <p>URL(s) to Time Stamping Authority (TSA) server(s) to use to timestamp the signing.
      * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * Separate multiple TSA URLs with comma (without space) or a nested XML tag.</p>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsa>http://timestamp.digicert.com,http://timestamp.globalsign.com/tsa/r6advanced1</tsa>
+     * </configuration>
+     * }</pre>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsa>
+     *     <url>http://timestamp.digicert.com</url>
+     *     <url>http://timestamp.globalsign.com/tsa/r6advanced1</url>
+     *   </tsa>
+     * </configuration>
+     * }</pre>
+     *
+     * <p>Usage of multiple TSA servers only makes sense when {@link #maxTries} is more than 1. A different TSA server
+     * will only be used at retries.</p>
+     *
+     * <p>Changed to a list since 3.1.0. Single XML element (without comma) is still supported.</p>
      *
      * @since 1.3
      */
     @Parameter(property = "jarsigner.tsa")
-    private String tsa;
+    private String[] tsa;
 
     /**
-     * See <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * <p>Alias(es) for certificate(s) in the active keystore used to find a TSA URL. From the certificate the X509v3
+     * extension "Subject Information Access" field is examined to find the TSA server URL. See
+     * <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html#Options">options</a>.
+     * Separate multiple aliases with comma (without space) or a nested XML tag.</p>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsacert>alias1,alias2</tsacert>
+     * </configuration>
+     * }</pre>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsacert>
+     *     <alias>alias1</alias>
+     *     <alias>alias2</alias>
+     *   </tsacert>
+     * </configuration>
+     * }</pre>
+     *
+     * <p>Should not be used at the same time as the {@link #tsa} parameter (because jarsigner will typically ignore
+     * tsacert, if tsa is set).</p>
+     *
+     * <p>Usage of multiple aliases only makes sense when {@link #maxTries} is more than 1. A different TSA server
+     * will only be used at retries.</p>
+     *
+     * <p>Changed to a list since 3.1.0. Single XML element (without comma) is still supported.</p>
      *
      * @since 1.3
      */
     @Parameter(property = "jarsigner.tsacert")
-    private String tsacert;
+    private String[] tsacert;
+
+    /**
+     * <p>OID(s) to send to the TSA server to identify the policy ID the server should use. If not specified TSA server
+     * will choose a default policy ID. Each TSA server vendor will typically define their own policy OIDs. See
+     * <a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html#CCHIFIAD">options</a>.
+     * Separate multiple OIDs with comma (without space) or a nested XML tag.</p>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsapolicyid>1.3.6.1.4.1.4146.2.3.1.2,2.16.840.1.114412.7.1</tsapolicyid>
+     * </configuration>
+     * }</pre>
+     *
+     * <pre>{@code
+     * <configuration>
+     *   <tsapolicyid>
+     *     <oid>1.3.6.1.4.1.4146.2.3.1.2</oid>
+     *     <oid>2.16.840.1.114412.7.1</oid>
+     *   </tsapolicyid>
+     * </configuration>
+     * }</pre>
+     *
+     * <p>If used, the number of OIDs should be the same as the number of elements in {@link #tsa} or {@link #tsacert}.
+     * The first OID will be used for the first TSA server, the second OID for the second TSA server and so on.</p>
+     *
+     * @since 3.1.0
+     */
+    @Parameter(property = "jarsigner.tsapolicyid")
+    private String[] tsapolicyid;
+
+    /**
+     * The message digest algorithm to use in the messageImprint that the TSA server will timestamp. A default value
+     * (for example {@code SHA-384}) will be selected by jarsigner if this parameter is not set. Only available in
+     * Java 11 and later. See <a href="https://docs.oracle.com/en/java/javase/11/tools/jarsigner.html">options</a>.
+     *
+     * @since 3.1.0
+     */
+    @Parameter(property = "jarsigner.tsadigestalg")
+    private String tsadigestalg;
 
     /**
      * Location of the extra certificate chain file. See
@@ -132,6 +220,8 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     /** Current WaitStrategy, to allow for sleeping after a signing failure. */
     private WaitStrategy waitStrategy = this::defaultWaitStrategy;
 
+    private TsaSelector tsaSelector;
+
     /** Exponent limit for exponential wait after failure function. 2^20 = 1048576 sec ~= 12 days. */
     private static final int MAX_WAIT_EXPONENT_ATTEMPT = 20;
 
@@ -175,6 +265,20 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
             getLog().warn(getMessage("invalidThreadCount", threadCount));
             threadCount = 1;
         }
+
+        if (tsa.length > 0 && tsacert.length > 0) {
+            getLog().warn(getMessage("warnUsageTsaAndTsacertSimultaneous"));
+        }
+        if (tsapolicyid.length > tsa.length || tsapolicyid.length > tsacert.length) {
+            getLog().warn(getMessage("warnUsageTsapolicyidTooMany", tsapolicyid.length, tsa.length, tsacert.length));
+        }
+        if (tsa.length > 1 && maxTries == 1) {
+            getLog().warn(getMessage("warnUsageMultiTsaWithoutRetry", tsa.length));
+        }
+        if (tsacert.length > 1 && maxTries == 1) {
+            getLog().warn(getMessage("warnUsageMultiTsacertWithoutRetry", tsacert.length));
+        }
+        tsaSelector = new TsaSelector(tsa, tsacert, tsapolicyid, tsadigestalg);
     }
 
     /**
@@ -184,13 +288,20 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     protected JarSignerRequest createRequest(File archive) throws MojoExecutionException {
         JarSignerSignRequest request = new JarSignerSignRequest();
         request.setSigfile(sigfile);
-        request.setTsaLocation(tsa);
-        request.setTsaAlias(tsacert);
+        updateJarSignerRequestWithTsa(request, tsaSelector.getServer());
         request.setCertchain(certchain);
 
         // Special handling for passwords through the Maven Security Dispatcher
         request.setKeypass(decrypt(keypass));
         return request;
+    }
+
+    /** Modifies JarSignerRequest with TSA parameters */
+    private void updateJarSignerRequestWithTsa(JarSignerSignRequest request, TsaServer tsaServer) {
+        request.setTsaLocation(tsaServer.getTsaUrl());
+        request.setTsaAlias(tsaServer.getTsaAlias());
+        request.setTsapolicyid(tsaServer.getTsaPolicyId());
+        request.setTsadigestalg(tsaServer.getTsaDigestAlt());
     }
 
     /**
@@ -202,7 +313,7 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         List<Future<Void>> futures = archives.stream()
                 .map(file -> executor.submit((Callable<Void>) () -> {
                     processArchive(file);
-                    return null;
+                    return null; // Return dummy value to conform with Void type
                 }))
                 .collect(Collectors.toList());
         try {
@@ -236,15 +347,18 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         for (int attempt = 0; attempt < maxTries; attempt++) {
             JavaToolResult result = jarSigner.execute(request);
             int resultCode = result.getExitCode();
-            Commandline commandLine = result.getCommandline();
             if (resultCode == 0) {
                 return;
             }
+            tsaSelector.registerFailure(); // Could be TSA server problem or something unrelated to TSA
+
             if (attempt < maxTries - 1) { // If not last attempt
                 waitStrategy.waitAfterFailure(attempt, Duration.ofSeconds(maxRetryDelaySeconds));
+                updateJarSignerRequestWithTsa((JarSignerSignRequest) request, tsaSelector.getServer());
             } else {
                 // Last attempt failed, use this failure as resulting failure
-                throw new MojoExecutionException(getMessage("failure", getCommandlineInfo(commandLine), resultCode));
+                throw new MojoExecutionException(
+                        getMessage("failure", getCommandlineInfo(result.getCommandline()), resultCode));
             }
         }
     }
