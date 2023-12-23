@@ -68,6 +68,14 @@ public class PluginXmlParser {
             if (configurationElement.hasAttribute(CONF_DEFAULT_VALUE)) {
                 String defaultValue = configurationElement.getAttribute(CONF_DEFAULT_VALUE);
                 defaultConfiguration.put(configurationParameterName, defaultValue);
+            } else {
+                if (configurationElement.hasAttribute("implementation")) {
+                    String implementation = configurationElement.getAttribute("implementation");
+                    // String arrays are per default set to empty array if user does not configure them
+                    if ("java.lang.String[]".equals(implementation)) {
+                        defaultConfiguration.put(configurationParameterName, "");
+                    }
+                }
             }
         }
         return defaultConfiguration;

@@ -124,8 +124,13 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
         } else if (fieldType.equals(File.class)) {
             field.set(instance, new File(stringValue));
         } else if (fieldType.equals(String[].class)) {
-            String[] values = stringValue.split(",");
-            field.set(instance, values);
+            if (stringValue.isEmpty()) {
+                // Maven defaults to empty list if no default value exists
+                field.set(instance, new String[0]);
+            } else {
+                String[] values = stringValue.split(",");
+                field.set(instance, values);
+            }
         } else {
             if (!stringValue.startsWith("${")) {
                 logger.warn(
