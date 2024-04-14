@@ -67,6 +67,7 @@ public class JarsignerSignMojoParallelTest {
     @Before
     public void setUp() throws Exception {
         projectDir = folder.newFolder("dummy-project");
+        when(project.getBasedir()).thenReturn(projectDir);
         configuration.put("processMainArtifact", "false");
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
