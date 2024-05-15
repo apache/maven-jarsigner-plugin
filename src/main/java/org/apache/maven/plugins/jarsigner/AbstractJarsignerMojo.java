@@ -20,6 +20,7 @@ package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -283,6 +284,9 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         List<File> archives = findJarfiles();
         processArchives(archives);
         getLog().info(getMessage("processed", archives.size()));
+        for (File archive : archives) {
+            getLog().info("  " + relativizePathAgainstBasedir(archive.toPath()));
+        }
     }
 
     /**
@@ -344,6 +348,23 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         return archives;
+    }
+
+    /**
+     * {@linkplain Path#relativize(Path) Relativizes} the path against {@link MavenProject#getBasedir()}.
+     * Can be used to simplify paths before displaying them to the user.
+     */
+    private Path relativizePathAgainstBasedir(Path path) {
+        // Additionally uses `normalize()` to remove any '.' and '..' from absolute path
+        Path basedir = project.getBasedir().toPath().toAbsolutePath().normalize();
+        Path absolutePath = path.toAbsolutePath().normalize();
+
+        if (absolutePath.startsWith(basedir)) {
+            return basedir.relativize(absolutePath);
+        }
+        // Otherwise don't `relativize` because it might construct path with lots of '../../' which can be confusing
+        // Use absolute path here to avoid confusion if for other artifacts the path was relativized
+        return absolutePath;
     }
 
     /**

@@ -62,6 +62,7 @@ public class JarsignerVerifyMojoTest {
     @Before
     public void setUp() throws Exception {
         dummyMavenProjectDir = folder.newFolder("dummy-project");
+        when(project.getBasedir()).thenReturn(dummyMavenProjectDir);
         mojoTestCreator = new MojoTestCreator<JarsignerVerifyMojo>(
                 JarsignerVerifyMojo.class, project, dummyMavenProjectDir, jarSigner);
         log = mock(Log.class);

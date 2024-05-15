@@ -72,6 +72,7 @@ public class JarsignerSignMojoRetryTest {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = folder.newFolder("dummy-project");
+        when(project.getBasedir()).thenReturn(projectDir);
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);

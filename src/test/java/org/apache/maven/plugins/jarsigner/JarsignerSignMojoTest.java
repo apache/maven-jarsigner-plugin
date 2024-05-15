@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.hamcrest.MockitoHamcrest;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
@@ -54,6 +56,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +80,7 @@ public class JarsignerSignMojoTest {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = folder.newFolder("dummy-project");
+        when(project.getBasedir()).thenReturn(projectDir);
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
@@ -413,6 +417,14 @@ public class JarsignerSignMojoTest {
                         RequestMatchers.hasArguments(new String[] {"-J-Dfile.encoding=ISO-8859-1", "argument2"})));
     }
 
+    private Path relativizePathAgainstBasedir(Path path) {
+        return project.getBasedir()
+                .toPath()
+                .toAbsolutePath()
+                .normalize()
+                .relativize(path.toAbsolutePath().normalize());
+    }
+
     /**
      * Test what is logged when verbose=true. The sign-mojo.html documentation indicates that the verbose flag should
      * be sent in to the jarsigner command. That is true, but in addition to this it is also (undocumented) used to
@@ -426,7 +438,8 @@ public class JarsignerSignMojoTest {
         configuration.put("processAttachedArtifacts", "false");
         File archiveDirectory = new File(projectDir, "my_archive_dir");
         archiveDirectory.mkdir();
-        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive1.jar"));
+        File jarFileToSign = new File(archiveDirectory, "archive1.jar");
+        TestArtifacts.createDummyZipFile(jarFileToSign);
         configuration.put("archiveDirectory", archiveDirectory.getPath());
         configuration.put("verbose", "true");
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
@@ -434,10 +447,13 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(log, times(1)).info(contains("Unsupported artifact "));
-        verify(log, times(1)).info(contains("Forcibly ignoring attached artifacts"));
-        verify(log, times(1)).info(contains("Processing "));
-        verify(log, times(1)).info(contains("1 archive(s) processed"));
+        InOrder inOrder = inOrder(log);
+        inOrder.verify(log, times(1)).info(contains("Unsupported artifact "));
+        inOrder.verify(log, times(1)).info(contains("Forcibly ignoring attached artifacts"));
+        inOrder.verify(log, times(1)).info(contains("Processing "));
+        inOrder.verify(log, times(1)).info(contains("1 archive(s) processed"));
+        Path expectedLoggedPath = relativizePathAgainstBasedir(jarFileToSign.toPath());
+        inOrder.verify(log, times(1)).info(contains(expectedLoggedPath.toString()));
     }
 
     /** Test what is logged when verbose=false */
@@ -449,7 +465,8 @@ public class JarsignerSignMojoTest {
         configuration.put("processAttachedArtifacts", "false");
         File archiveDirectory = new File(projectDir, "my_archive_dir");
         archiveDirectory.mkdir();
-        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive1.jar"));
+        File jarFileToSign = new File(archiveDirectory, "archive1.jar");
+        TestArtifacts.createDummyZipFile(jarFileToSign);
         configuration.put("archiveDirectory", archiveDirectory.getPath());
         configuration.put("verbose", "false");
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
@@ -457,9 +474,12 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(log, times(1)).debug(contains("Unsupported artifact "));
-        verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
-        verify(log, times(1)).debug(contains("Processing "));
-        verify(log, times(1)).info(contains("1 archive(s) processed"));
+        InOrder inOrder = inOrder(log);
+        inOrder.verify(log, times(1)).debug(contains("Unsupported artifact "));
+        inOrder.verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
+        inOrder.verify(log, times(1)).debug(contains("Processing "));
+        inOrder.verify(log, times(1)).info(contains("1 archive(s) processed"));
+        Path expectedLoggedPath = relativizePathAgainstBasedir(jarFileToSign.toPath());
+        inOrder.verify(log, times(1)).info(contains(expectedLoggedPath.toString()));
     }
 }
