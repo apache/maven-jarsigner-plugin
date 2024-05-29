@@ -185,6 +185,16 @@ class RequestMatchers {
                 "has tsacert ", tsacert, request -> request.getTsaAlias().equals(tsacert));
     }
 
+    static TypeSafeMatcher<JarSignerSignRequest> hasTsaPolicyid(String tsapolicyid) {
+        return new JarSignerSignRequestMatcher("has tsapolicyid ", tsapolicyid, request -> request.getTsapolicyid()
+                .equals(tsapolicyid));
+    }
+
+    static TypeSafeMatcher<JarSignerSignRequest> hasTsaDigestalg(String tsadigestalg) {
+        return new JarSignerSignRequestMatcher("has tsadigestalg ", tsadigestalg, request -> request.getTsadigestalg()
+                .equals(tsadigestalg));
+    }
+
     static TypeSafeMatcher<JarSignerSignRequest> hasCertchain(String certchain) {
         return new JarSignerSignRequestMatcher("has certchain ", certchain, request -> request.getCertchain()
                 .getPath()

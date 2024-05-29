@@ -155,10 +155,10 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
      * <pre>
      * {@code
      * <configuration>
-     *     <arguments>
-     *         <argument>-signedjar</argument>
-     *         <argument>my-project_signed.jar</argument>
-     *     </arguments>
+     *   <arguments>
+     *     <argument>-signedjar</argument>
+     *     <argument>my-project_signed.jar</argument>
+     *   </arguments>
      * </configuration>
      * }</pre>
      */
