@@ -28,7 +28,7 @@ under the License.
   </parent>
 
   <artifactId>maven-jarsigner-plugin</artifactId>
-  <version>3.1.0</version>
+  <version>3.1.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Jarsigner Plugin</name>
@@ -50,7 +50,7 @@ under the License.
   <scm>
     <connection>scm:git:https://gitbox.apache.org/repos/asf/maven-jarsigner-plugin.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/maven-jarsigner-plugin.git</developerConnection>
-    <tag>maven-jarsigner-plugin-3.1.0</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/apache/maven-jarsigner-plugin/tree/${project.scm.tag}</url>
   </scm>
   <issueManagement>
@@ -71,7 +71,7 @@ under the License.
   <properties>
     <mavenVersion>3.6.3</mavenVersion>
     <jacocoVersion>0.8.12</jacocoVersion>
-    <project.build.outputTimestamp>2024-09-03T16:35:59Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2024-09-03T16:36:13Z</project.build.outputTimestamp>
   </properties>
 
   <dependencies>
