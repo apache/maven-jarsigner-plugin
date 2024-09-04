@@ -301,7 +301,7 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         request.setTsaLocation(tsaServer.getTsaUrl());
         request.setTsaAlias(tsaServer.getTsaAlias());
         request.setTsapolicyid(tsaServer.getTsaPolicyId());
-        request.setTsadigestalg(tsaServer.getTsaDigestAlt());
+        request.setTsadigestalg(tsaServer.getTsaDigestAlg());
     }
 
     /**

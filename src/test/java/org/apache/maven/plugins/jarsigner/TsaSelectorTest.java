@@ -43,14 +43,14 @@ public class TsaSelectorTest {
         assertNull(tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertNull(tsaServer.getTsaDigestAlt());
+        assertNull(tsaServer.getTsaDigestAlg());
 
         // Make sure "next" server also contains null values
         tsaServer = tsaSelector.getServer();
         assertNull(tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertNull(tsaServer.getTsaDigestAlt());
+        assertNull(tsaServer.getTsaDigestAlg());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class TsaSelectorTest {
         assertEquals("http://url1.com", tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertNull(tsaServer.getTsaDigestAlt());
+        assertNull(tsaServer.getTsaDigestAlg());
 
         tsaSelector.registerFailure();
 
@@ -70,14 +70,14 @@ public class TsaSelectorTest {
         assertEquals("http://url2.com", tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertNull(tsaServer.getTsaDigestAlt());
+        assertNull(tsaServer.getTsaDigestAlg());
 
         // Should get same server again
         tsaServer = tsaSelector.getServer();
         assertEquals("http://url2.com", tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertNull(tsaServer.getTsaDigestAlt());
+        assertNull(tsaServer.getTsaDigestAlg());
     }
 
     @Test(timeout = 30000)
@@ -135,7 +135,7 @@ public class TsaSelectorTest {
         assertEquals("http://url1.com", tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertEquals("SHA-512", tsaServer.getTsaDigestAlt());
+        assertEquals("SHA-512", tsaServer.getTsaDigestAlg());
 
         // Make sure that the next URL has the same digest algorithm
         tsaSelector.registerFailure();
@@ -143,7 +143,7 @@ public class TsaSelectorTest {
         assertEquals("http://url2.com", tsaServer.getTsaUrl());
         assertNull(tsaServer.getTsaAlias());
         assertNull(tsaServer.getTsaPolicyId());
-        assertEquals("SHA-512", tsaServer.getTsaDigestAlt());
+        assertEquals("SHA-512", tsaServer.getTsaDigestAlg());
     }
 
     @Test
@@ -172,6 +172,6 @@ public class TsaSelectorTest {
         assertEquals("http://url1.com", tsaServer.getTsaUrl());
         assertEquals("alias1", tsaServer.getTsaAlias());
         assertEquals("1.1", tsaServer.getTsaPolicyId());
-        assertEquals("SHA-384", tsaServer.getTsaDigestAlt());
+        assertEquals("SHA-384", tsaServer.getTsaDigestAlg());
     }
 }
