@@ -112,13 +112,13 @@ class TsaSelector {
         private final String tsaUrl;
         private final String tsaAlias;
         private final String tsaPolicyId;
-        private final String tsaDigestAlt;
+        private final String tsaDigestAlg;
 
-        private TsaServer(String tsaUrl, String tsaAlias, String tsaPolicyId, String tsaDigestAlt) {
+        private TsaServer(String tsaUrl, String tsaAlias, String tsaPolicyId, String tsaDigestAlg) {
             this.tsaUrl = tsaUrl;
             this.tsaAlias = tsaAlias;
             this.tsaPolicyId = tsaPolicyId;
-            this.tsaDigestAlt = tsaDigestAlt;
+            this.tsaDigestAlg = tsaDigestAlg;
         }
 
         String getTsaUrl() {
@@ -133,8 +133,8 @@ class TsaSelector {
             return tsaPolicyId;
         }
 
-        String getTsaDigestAlt() {
-            return tsaDigestAlt;
+        String getTsaDigestAlg() {
+            return tsaDigestAlg;
         }
     }
 }
