@@ -33,7 +33,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
@@ -238,11 +237,6 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     private File workingDirectory;
 
     /**
-     */
-    @Component
-    private JarSigner jarSigner;
-
-    /**
      * The current build session instance. This is used for
      * toolchain manager API calls.
      *
@@ -251,19 +245,26 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
+    private final JarSigner jarSigner;
+
     /**
      * To obtain a toolchain if possible.
      *
      * @since 1.3
      */
-    @Component
-    private ToolchainManager toolchainManager;
+    private final ToolchainManager toolchainManager;
 
     /**
      * @since 1.3.2
      */
-    @Component(hint = "mng-4384")
-    private SecDispatcher securityDispatcher;
+    private final SecDispatcher securityDispatcher;
+
+    protected AbstractJarsignerMojo(
+            JarSigner jarSigner, ToolchainManager toolchainManager, SecDispatcher securityDispatcher) {
+        this.jarSigner = jarSigner;
+        this.toolchainManager = toolchainManager;
+        this.securityDispatcher = securityDispatcher;
+    }
 
     @Override
     public final void execute() throws MojoExecutionException {

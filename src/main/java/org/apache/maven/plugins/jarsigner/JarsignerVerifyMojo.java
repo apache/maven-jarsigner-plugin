@@ -18,6 +18,9 @@
  */
 package org.apache.maven.plugins.jarsigner;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -31,6 +34,8 @@ import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
+import org.apache.maven.toolchain.ToolchainManager;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 /**
  * Checks the signatures of a project artifact and attachments using jarsigner.
@@ -49,14 +54,27 @@ public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
 
     /**
      * When <code>true</code> this will make the execute() operation fail,
-     * throwing an exception, when verifying a non signed jar.
+     * throwing an exception, when verifying an unsigned jar.
      * Primarily to keep backwards compatibility with existing code, and allow reusing the
-     * bean in unattended operations when set to <code>false</code>.
+     * mojo in unattended operations when set to <code>false</code>.
      *
      * @since 1.3
      **/
     @Parameter(property = "jarsigner.errorWhenNotSigned", defaultValue = "false")
     private boolean errorWhenNotSigned;
+
+    @Inject
+    public JarsignerVerifyMojo(
+            JarSigner jarSigner,
+            ToolchainManager toolchainManager,
+            @Named("mng-4384") SecDispatcher securityDispatcher) {
+        super(jarSigner, toolchainManager, securityDispatcher);
+    }
+
+    // for testing; invoked via reflection
+    JarsignerVerifyMojo() {
+        super(null, null, null);
+    }
 
     /**
      * {@inheritDoc}
