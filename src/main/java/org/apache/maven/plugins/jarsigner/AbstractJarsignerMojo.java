@@ -33,7 +33,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
@@ -258,7 +257,6 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     /**
      * @since 1.3.2
      */
-    @Component(hint = "mng-4384")
     private final SecDispatcher securityDispatcher;
 
     protected AbstractJarsignerMojo(
