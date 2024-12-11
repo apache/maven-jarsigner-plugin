@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +65,9 @@ public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
 
     @Inject
     public JarsignerVerifyMojo(
-            JarSigner jarSigner, ToolchainManager toolchainManager, SecDispatcher securityDispatcher) {
+            JarSigner jarSigner,
+            ToolchainManager toolchainManager,
+            @Named("mng-4384") SecDispatcher securityDispatcher) {
         super(jarSigner, toolchainManager, securityDispatcher);
     }
 

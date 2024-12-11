@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import java.io.File;
 import java.io.IOException;
@@ -230,7 +231,10 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     private static final int MAX_WAIT_EXPONENT_ATTEMPT = 20;
 
     @Inject
-    public JarsignerSignMojo(JarSigner jarSigner, ToolchainManager toolchainManager, SecDispatcher securityDispatcher) {
+    public JarsignerSignMojo(
+            JarSigner jarSigner,
+            ToolchainManager toolchainManager,
+            @Named("mng-4384") SecDispatcher securityDispatcher) {
         super(jarSigner, toolchainManager, securityDispatcher);
     }
 
