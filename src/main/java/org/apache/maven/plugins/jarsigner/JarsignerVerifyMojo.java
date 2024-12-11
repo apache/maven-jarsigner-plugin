@@ -68,6 +68,11 @@ public class JarsignerVerifyMojo extends AbstractJarsignerMojo {
         super(jarSigner, toolchainManager, securityDispatcher);
     }
 
+    // for testing; invoked via reflection
+    JarsignerVerifyMojo() {
+        super(null, null, null);
+    }
+
     /**
      * {@inheritDoc}
      */
