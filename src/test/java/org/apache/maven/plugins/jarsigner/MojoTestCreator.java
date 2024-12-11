@@ -85,10 +85,11 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
 
     /**
      * Creates and configures the Mojo instance.
-     * @param configuration user supplied configuration.
+     *
+     * @param configuration user supplied configuration
      */
-    public T configure(Map<String, String> configuration) throws Exception {
-        T mojo = clazz.getDeclaredConstructor().newInstance();
+    public T configure(Map<String, String> configuration, Class<?>... parameterTypes) throws Exception {
+        T mojo = clazz.getDeclaredConstructor(parameterTypes).newInstance();
         setDefaultValues(mojo);
 
         setAttribute(mojo, "project", project);

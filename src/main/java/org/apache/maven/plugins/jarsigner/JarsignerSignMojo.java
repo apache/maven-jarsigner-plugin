@@ -234,6 +234,11 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         super(jarSigner, toolchainManager, securityDispatcher);
     }
 
+    // for testing; invoked via reflection
+    JarsignerSignMojo() {
+        super(null, null, null);
+    }
+
     @Override
     protected String getCommandlineInfo(final Commandline commandLine) {
         String commandLineInfo = commandLine != null ? commandLine.toString() : null;
