@@ -18,6 +18,8 @@
  */
 package org.apache.maven.plugins.jarsigner;
 
+import javax.inject.Inject;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -42,6 +44,8 @@ import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
+import org.apache.maven.toolchain.ToolchainManager;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 /**
  * Signs a project artifact and attachments using jarsigner.
@@ -224,6 +228,11 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
 
     /** Exponent limit for exponential wait after failure function. 2^20 = 1048576 sec ~= 12 days. */
     private static final int MAX_WAIT_EXPONENT_ATTEMPT = 20;
+
+    @Inject
+    public JarsignerSignMojo(JarSigner jarSigner, ToolchainManager toolchainManager, SecDispatcher securityDispatcher) {
+        super(jarSigner, toolchainManager, securityDispatcher);
+    }
 
     @Override
     protected String getCommandlineInfo(final Commandline commandLine) {
