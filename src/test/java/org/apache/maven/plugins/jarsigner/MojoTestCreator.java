@@ -54,7 +54,7 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
     private SecDispatcher securityDispatcher;
     private WaitStrategy waitStrategy;
     private Log log;
-    private List<Field> fields;
+    private final List<Field> fields;
 
     public MojoTestCreator(Class<T> clazz, MavenProject project, File projectDir, JarSigner jarSigner)
             throws Exception {
@@ -65,6 +65,14 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
 
         securityDispatcher = str -> str; // Simple SecDispatcher that only returns parameter
         fields = getAllFields(clazz);
+    }
+
+    public MojoTestCreator(Class<?> clazz) {
+        this.fields = getAllFields(clazz);
+        this.clazz = null;
+        this.project = null;
+        this.projectDir = null;
+        this.jarSigner = null;
     }
 
     public void setToolchainManager(ToolchainManager toolchainManager) {
@@ -150,7 +158,7 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
                         + instance.getClass().getName()));
     }
 
-    private void setAttribute(Object instance, String fieldName, Object value) throws Exception {
+    void setAttribute(Object instance, String fieldName, Object value) throws Exception {
         Field field = getField(instance, fieldName);
         field.setAccessible(true);
         field.set(instance, value);
