@@ -36,25 +36,25 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 public class JarsignerSignMojoParallelTest {
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public File folder;
 
     private MavenProject project = mock(MavenProject.class);
     private JarSigner jarSigner = mock(JarSigner.class);
@@ -64,9 +64,9 @@ public class JarsignerSignMojoParallelTest {
     private ExecutorService executor;
     private Log log;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        projectDir = folder.newFolder("dummy-project");
+        projectDir = newFolder(folder, "dummy-project");
         configuration.put("processMainArtifact", "false");
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
@@ -76,12 +76,13 @@ public class JarsignerSignMojoParallelTest {
                 Executors.newSingleThreadExecutor(namedThreadFactory(getClass().getSimpleName()));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         executor.shutdown();
     }
 
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
     public void test10Files2Parallel() throws Exception {
         configuration.put("archiveDirectory", createArchives(10).getPath());
         configuration.put("threadCount", "2");
@@ -109,7 +110,8 @@ public class JarsignerSignMojoParallelTest {
         assertTrue(future.isDone());
     }
 
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
     public void test10Files2Parallel3Hanging() throws Exception {
         configuration.put("archiveDirectory", createArchives(10).getPath());
         configuration.put("threadCount", "2");
@@ -141,7 +143,8 @@ public class JarsignerSignMojoParallelTest {
         assertTrue(future.isDone());
     }
 
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
     public void test10Files1Parallel() throws Exception {
         configuration.put("archiveDirectory", createArchives(10).getPath());
         configuration.put("threadCount", "1");
@@ -168,7 +171,8 @@ public class JarsignerSignMojoParallelTest {
         assertTrue(future.isDone());
     }
 
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
     public void test10Files2ParallelOneFail() throws Exception {
         configuration.put("archiveDirectory", createArchives(10).getPath());
         configuration.put("threadCount", "2");
@@ -180,9 +184,8 @@ public class JarsignerSignMojoParallelTest {
                 .thenReturn(RESULT_OK);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
 
         assertThat(mojoException.getMessage(), containsString(String.valueOf("Failed executing 'jarsigner ")));
     }
@@ -214,5 +217,14 @@ public class JarsignerSignMojoParallelTest {
 
     private static ThreadFactory namedThreadFactory(String threadNamePrefix) {
         return r -> new Thread(r, threadNamePrefix + "-Thread");
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

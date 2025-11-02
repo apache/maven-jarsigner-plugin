@@ -26,9 +26,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.maven.plugins.jarsigner.TsaSelector.TsaServer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TsaSelectorTest {
     private static final String[] EMPTY = new String[0];
@@ -80,7 +81,8 @@ public class TsaSelectorTest {
         assertNull(tsaServer.getTsaDigestAlg());
     }
 
-    @Test(timeout = 30000)
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
     public void testMultiThreadedScenario() throws InterruptedException {
         executor = Executors.newFixedThreadPool(2);
 

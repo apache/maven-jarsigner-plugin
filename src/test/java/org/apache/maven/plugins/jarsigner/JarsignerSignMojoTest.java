@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,11 +36,10 @@ import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.hamcrest.MockitoHamcrest;
 
@@ -51,7 +51,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -61,8 +61,8 @@ import static org.mockito.Mockito.when;
 
 public class JarsignerSignMojoTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public File folder;
 
     private Locale originalLocale;
     private MavenProject project = mock(MavenProject.class);
@@ -72,18 +72,18 @@ public class JarsignerSignMojoTest {
     private Log log;
     private MojoTestCreator<JarsignerSignMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
-        projectDir = folder.newFolder("dummy-project");
+        projectDir = newFolder(folder, "dummy-project");
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Locale.setDefault(originalLocale);
     }
@@ -132,9 +132,8 @@ public class JarsignerSignMojoTest {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_ERROR);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         assertThat(mojoException.getMessage(), containsString(String.valueOf(RESULT_ERROR.getExitCode())));
         assertThat(
                 mojoException.getMessage(),
@@ -149,9 +148,8 @@ public class JarsignerSignMojoTest {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenThrow(new JavaToolException("test failure"));
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         assertThat(mojoException.getMessage(), containsString("test failure"));
     }
 
@@ -283,8 +281,8 @@ public class JarsignerSignMojoTest {
         File previouslySignedArchive =
                 TestArtifacts.createDummySignedJarFile(new File(archiveDirectory, "previously_signed_archive.jar"));
         assertTrue(
-                "previously_signed_archive.jar should be detected as a signed file before executing the Mojo",
-                JarSignerUtil.isArchiveSigned(previouslySignedArchive));
+                JarSignerUtil.isArchiveSigned(previouslySignedArchive),
+                "previously_signed_archive.jar should be detected as a signed file before executing the Mojo");
         TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive_to_exclude.jar"));
         TestArtifacts.createDummyZipFile(new File(archiveDirectory, "not_this.par"));
 
@@ -461,5 +459,14 @@ public class JarsignerSignMojoTest {
         verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
         verify(log, times(1)).debug(contains("Processing "));
         verify(log, times(1)).info(contains("1 archive(s) processed"));
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

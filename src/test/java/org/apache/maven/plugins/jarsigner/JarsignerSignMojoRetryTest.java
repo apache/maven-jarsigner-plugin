@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -34,18 +35,17 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.argThat;
@@ -55,8 +55,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JarsignerSignMojoRetryTest {
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public File folder;
 
     private Locale originalLocale;
     private MavenProject project = mock(MavenProject.class);
@@ -67,11 +67,11 @@ public class JarsignerSignMojoRetryTest {
     private Log log;
     private MojoTestCreator<JarsignerSignMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
-        projectDir = folder.newFolder("dummy-project");
+        projectDir = newFolder(folder, "dummy-project");
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
@@ -80,7 +80,7 @@ public class JarsignerSignMojoRetryTest {
         when(project.getArtifact()).thenReturn(mainArtifact);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Locale.setDefault(originalLocale);
     }
@@ -105,9 +105,8 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "1");
         mojoTestCreator.setWaitStrategy(waitStrategy);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         verify(jarSigner, times(1)).execute(any());
         verify(waitStrategy, times(0)).waitAfterFailure(0, Duration.ofSeconds(0));
     }
@@ -135,9 +134,8 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "2");
         mojoTestCreator.setWaitStrategy(waitStrategy);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         verify(jarSigner, times(2)).execute(any());
         verify(waitStrategy, times(1)).waitAfterFailure(0, Duration.ofSeconds(0));
     }
@@ -151,9 +149,8 @@ public class JarsignerSignMojoRetryTest {
 
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
 
         verify(jarSigner, times(1)).execute(any()); // Should have tried exactly one time, regardless of invalid value
         verify(log).warn(contains("Invalid maxTries"));
@@ -258,9 +255,8 @@ public class JarsignerSignMojoRetryTest {
         Sleeper iterruptedSleeper = value -> {
             throw new InterruptedException("Thread was interrupted while sleeping.");
         };
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.waitAfterFailure(0, Duration.ofSeconds(10), iterruptedSleeper);
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.waitAfterFailure(0, Duration.ofSeconds(10), iterruptedSleeper));
         assertThat(mojoException.getMessage(), containsString("interrupted while waiting after failure"));
     }
 
@@ -279,13 +275,21 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "5");
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
 
         // Make sure that the last error exit code is present
         assertThat(mojoException.getMessage(), containsString(String.valueOf(42)));
         // Make sure that the first error exit code is not present
         assertThat(mojoException.getMessage(), not(containsString(String.valueOf(1))));
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

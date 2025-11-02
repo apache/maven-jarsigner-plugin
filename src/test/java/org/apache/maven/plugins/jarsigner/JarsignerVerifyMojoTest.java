@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -28,10 +29,9 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.hamcrest.MockitoHamcrest;
 
@@ -40,7 +40,7 @@ import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -49,8 +49,8 @@ import static org.mockito.Mockito.when;
 
 public class JarsignerVerifyMojoTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public File folder;
 
     private MavenProject project = mock(MavenProject.class);
     private JarSigner jarSigner = mock(JarSigner.class);
@@ -59,9 +59,9 @@ public class JarsignerVerifyMojoTest {
     private Log log;
     private MojoTestCreator<JarsignerVerifyMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        dummyMavenProjectDir = folder.newFolder("dummy-project");
+        dummyMavenProjectDir = newFolder(folder, "dummy-project");
         mojoTestCreator = new MojoTestCreator<JarsignerVerifyMojo>(
                 JarsignerVerifyMojo.class, project, dummyMavenProjectDir, jarSigner);
         log = mock(Log.class);
@@ -121,9 +121,8 @@ public class JarsignerVerifyMojoTest {
         when(jarSigner.execute(any(JarSignerVerifyRequest.class))).thenReturn(RESULT_ERROR);
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         assertThat(mojoException.getMessage(), containsString(String.valueOf(RESULT_ERROR.getExitCode())));
         assertThat(
                 mojoException.getMessage(),
@@ -156,11 +155,19 @@ public class JarsignerVerifyMojoTest {
 
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () ->
+            mojo.execute());
         assertThat(
                 mojoException.getMessage(),
                 containsString(mainArtifact.getFile().getPath()));
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }
