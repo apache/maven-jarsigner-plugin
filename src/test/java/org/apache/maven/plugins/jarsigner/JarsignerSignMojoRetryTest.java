@@ -45,7 +45,8 @@ import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.argThat;
@@ -143,7 +144,7 @@ public class JarsignerSignMojoRetryTest {
     }
 
     @Test
-    public void testInvalidMaxTries_zero() throws Exception {
+    public void testInvalidMaxTriesZero() throws Exception {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_ERROR);
 
         configuration.put("maxTries", "0"); // Setting an "invalid" value
@@ -161,7 +162,7 @@ public class JarsignerSignMojoRetryTest {
     }
 
     @Test
-    public void testInvalidMaxTries_negative() throws Exception {
+    public void testInvalidMaxTriesNegative() throws Exception {
         // Make result ok, to make this test check more things (compared to testInvalidMaxTries_zero())
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
 
@@ -195,7 +196,7 @@ public class JarsignerSignMojoRetryTest {
     }
 
     @Test
-    public void testInvalidMaxRetryDelaySeconds_negative() throws Exception {
+    public void testInvalidMaxRetryDelaySecondsNegative() throws Exception {
         when(jarSigner.execute(any(JarSignerSignRequest.class)))
                 .thenReturn(RESULT_ERROR)
                 .thenReturn(RESULT_OK);
@@ -217,16 +218,16 @@ public class JarsignerSignMojoRetryTest {
     public void testDefaultWaitStrategy() throws Exception {
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        long NO_SLEEP_VALUE = 42_001;
+        long noSleepValue = 42_001;
         // Storage of the most recent sleep value
-        AtomicLong sleepValue = new AtomicLong(NO_SLEEP_VALUE);
+        AtomicLong sleepValue = new AtomicLong(noSleepValue);
         Sleeper sleeper = value -> sleepValue.set(value);
 
         mojo.waitAfterFailure(0, Duration.ofSeconds(0), sleeper);
-        assertEquals(NO_SLEEP_VALUE, sleepValue.get());
+        assertEquals(noSleepValue, sleepValue.get());
 
         mojo.waitAfterFailure(1, Duration.ofSeconds(0), sleeper);
-        assertEquals(NO_SLEEP_VALUE, sleepValue.get());
+        assertEquals(noSleepValue, sleepValue.get());
 
         mojo.waitAfterFailure(0, Duration.ofSeconds(1), sleeper);
         assertEquals(1000, sleepValue.get());
@@ -243,10 +244,10 @@ public class JarsignerSignMojoRetryTest {
         mojo.waitAfterFailure(Integer.MAX_VALUE, Duration.ofSeconds(100), sleeper);
         assertEquals(100_000, sleepValue.get());
 
-        sleepValue.set(NO_SLEEP_VALUE); // "reset" sleep value
+        sleepValue.set(noSleepValue); // "reset" sleep value
         mojo.waitAfterFailure(Integer.MIN_VALUE, Duration.ofSeconds(100), sleeper);
         // Make sure sleep has not been invoked, should be the "reset" value
-        assertEquals(NO_SLEEP_VALUE, sleepValue.get());
+        assertEquals(noSleepValue, sleepValue.get());
 
         // Testing the attempt limit used in exponential function. Will return a odd value (2^20).
         mojo.waitAfterFailure(10000, Duration.ofDays(356), sleeper);

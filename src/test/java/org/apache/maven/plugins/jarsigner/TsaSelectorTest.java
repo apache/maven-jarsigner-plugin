@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.maven.plugins.jarsigner.TsaSelector.TsaServer;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class TsaSelectorTest {
     private static final String[] EMPTY = new String[0];
