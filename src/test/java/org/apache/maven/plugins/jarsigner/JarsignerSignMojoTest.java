@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.hamcrest.MockitoHamcrest;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
@@ -465,5 +468,27 @@ public class JarsignerSignMojoTest {
         verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
         verify(log, times(1)).debug(contains("Processing "));
         verify(log, times(1)).info(contains("1 archive(s) processed"));
+    }
+
+    @Test
+    public void testDefaultSecDispatcher() throws Exception {
+        String pw = "trivialPW";
+        String secrectText = "my-sigrid";
+        File securitySettings = folder.newFile("settings-security.xml");
+        Files.write(
+                securitySettings.toPath(),
+                Arrays.asList( //
+                        "<settingsSecurity>", //
+                        "<master>{tZdWvqoeiY0HNlIBiQwn5a+gsv7v0FVhjlrAqz6Q6Yc=}</master>", //
+                        "</settingsSecurity>"));
+
+        DefaultPlexusCipher cypher = new DefaultPlexusCipher();
+        DefaultSecDispatcher dispatcher = new DefaultSecDispatcher();
+        dispatcher.setConfigurationFile(securitySettings.toString());
+        new MojoTestCreator<>(DefaultSecDispatcher.class).setAttribute(dispatcher, "_cipher", cypher);
+
+        String encrypted = cypher.decorate(cypher.encrypt(secrectText, pw));
+        String decrypted = dispatcher.decrypt(encrypted);
+        assertEquals(secrectText, decrypted);
     }
 }
