@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,7 +98,7 @@ public class JarsignerSignMojoRetryTest {
 
         verify(jarSigner)
                 .execute(argThat(request -> request.getArchive().getPath().endsWith("my-project.jar")));
-        verify(waitStrategy, times(0)).waitAfterFailure(0, Duration.ofSeconds(0));
+        verify(waitStrategy, never()).waitAfterFailure(0, Duration.ofSeconds(0));
     }
 
     @Test
@@ -109,8 +110,8 @@ public class JarsignerSignMojoRetryTest {
         assertThrows(MojoExecutionException.class, () -> {
             mojo.execute();
         });
-        verify(jarSigner, times(1)).execute(any());
-        verify(waitStrategy, times(0)).waitAfterFailure(0, Duration.ofSeconds(0));
+        verify(jarSigner).execute(any());
+        verify(waitStrategy, never()).waitAfterFailure(0, Duration.ofSeconds(0));
     }
 
     @Test
@@ -125,7 +126,7 @@ public class JarsignerSignMojoRetryTest {
         mojo.execute();
 
         verify(jarSigner, times(2)).execute(any());
-        verify(waitStrategy, times(1)).waitAfterFailure(0, Duration.ofSeconds(0));
+        verify(waitStrategy).waitAfterFailure(0, Duration.ofSeconds(0));
     }
 
     @Test
@@ -140,7 +141,7 @@ public class JarsignerSignMojoRetryTest {
             mojo.execute();
         });
         verify(jarSigner, times(2)).execute(any());
-        verify(waitStrategy, times(1)).waitAfterFailure(0, Duration.ofSeconds(0));
+        verify(waitStrategy).waitAfterFailure(0, Duration.ofSeconds(0));
     }
 
     @Test
@@ -156,7 +157,7 @@ public class JarsignerSignMojoRetryTest {
             mojo.execute();
         });
 
-        verify(jarSigner, times(1)).execute(any()); // Should have tried exactly one time, regardless of invalid value
+        verify(jarSigner).execute(any()); // Should have tried exactly one time, regardless of invalid value
         verify(log).warn(contains("Invalid maxTries"));
         verify(log).warn(contains("0"));
     }
@@ -172,7 +173,7 @@ public class JarsignerSignMojoRetryTest {
 
         mojo.execute();
 
-        verify(jarSigner, times(1)).execute(any()); // Should have tried exactly one time, regardless of invalid value
+        verify(jarSigner).execute(any()); // Should have tried exactly one time, regardless of invalid value
         verify(log).warn(contains("Invalid maxTries"));
         verify(log).warn(contains("-2"));
     }
@@ -191,8 +192,8 @@ public class JarsignerSignMojoRetryTest {
 
         mojo.execute();
 
-        verify(waitStrategy, times(1)).waitAfterFailure(0, Duration.ofSeconds(30));
-        verify(waitStrategy, times(1)).waitAfterFailure(1, Duration.ofSeconds(30));
+        verify(waitStrategy).waitAfterFailure(0, Duration.ofSeconds(30));
+        verify(waitStrategy).waitAfterFailure(1, Duration.ofSeconds(30));
     }
 
     @Test

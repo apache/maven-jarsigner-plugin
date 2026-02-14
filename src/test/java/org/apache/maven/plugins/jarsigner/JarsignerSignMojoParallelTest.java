@@ -54,7 +54,6 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -204,7 +203,7 @@ public class JarsignerSignMojoParallelTest {
 
         mojo.execute();
 
-        verify(jarSigner, times(1)).execute(any());
+        verify(jarSigner).execute(any());
         verify(log).warn(contains("Invalid threadCount value"));
         verify(log).warn(contains("Was '0'"));
     }

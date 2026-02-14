@@ -59,6 +59,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -168,7 +169,7 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner, times(0)).execute(any()); // Should not try to sign anything
+        verify(jarSigner, never()).execute(any()); // Should not try to sign anything
     }
 
     /** Normal Java project, but avoid to process the main artifact (processMainArtifact to false) */
@@ -181,7 +182,7 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner, times(0)).execute(any()); // Should not try to sign anything
+        verify(jarSigner, never()).execute(any()); // Should not try to sign anything
     }
 
     /** Make sure that when skip is configured the Mojo will not process anything */
@@ -193,7 +194,7 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner, times(0)).execute(any()); // Should not try to sign anything
+        verify(jarSigner, never()).execute(any()); // Should not try to sign anything
     }
 
     /** Only process the specified archive, don't process the main artifact nor the attached. */
@@ -209,8 +210,8 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         // Make sure only the jar pointed by "archive" has been processed, but not the main artifact
-        verify(jarSigner, times(0)).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
-        verify(jarSigner, times(1)).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("archive.jar")));
+        verify(jarSigner, never()).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
+        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("archive.jar")));
     }
 
     /** Test that it is possible to disable processing of attached artifacts */
@@ -230,8 +231,8 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         // Make sure that only the main artifact has been processed, but not the attached artifact
-        verify(jarSigner, times(1)).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
-        verify(jarSigner, times(0))
+        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
+        verify(jarSigner, never())
                 .execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project-sources.jar")));
     }
 
@@ -438,10 +439,10 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(log, times(1)).info(contains("Unsupported artifact "));
-        verify(log, times(1)).info(contains("Forcibly ignoring attached artifacts"));
-        verify(log, times(1)).info(contains("Processing "));
-        verify(log, times(1)).info(contains("1 archive(s) processed"));
+        verify(log).info(contains("Unsupported artifact "));
+        verify(log).info(contains("Forcibly ignoring attached artifacts"));
+        verify(log).info(contains("Processing "));
+        verify(log).info(contains("1 archive(s) processed"));
     }
 
     /** Test what is logged when verbose=false */
@@ -461,9 +462,9 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(log, times(1)).debug(contains("Unsupported artifact "));
-        verify(log, times(1)).debug(contains("Forcibly ignoring attached artifacts"));
-        verify(log, times(1)).debug(contains("Processing "));
-        verify(log, times(1)).info(contains("1 archive(s) processed"));
+        verify(log).debug(contains("Unsupported artifact "));
+        verify(log).debug(contains("Forcibly ignoring attached artifacts"));
+        verify(log).debug(contains("Processing "));
+        verify(log).info(contains("1 archive(s) processed"));
     }
 }
