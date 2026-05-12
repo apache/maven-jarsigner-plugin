@@ -132,20 +132,23 @@ class RequestMatchers {
 
     static <T extends AbstractJarSignerRequest> TypeSafeMatcher<T> hasProviderArg(String providerArg) {
         return new AbstractJarSignerRequestMatcher<T>(
-                "has providerArg ", providerArg, request -> request.getProviderArg()
-                        .equals(providerArg));
+                "has providerArg ",
+                providerArg,
+                request -> request.getProviderArg().equals(providerArg));
     }
 
     static <T extends AbstractJarSignerRequest> TypeSafeMatcher<T> hasProviderClass(String providerClass) {
         return new AbstractJarSignerRequestMatcher<T>(
-                "has providerClass ", providerClass, request -> request.getProviderClass()
-                        .equals(providerClass));
+                "has providerClass ",
+                providerClass,
+                request -> request.getProviderClass().equals(providerClass));
     }
 
     static <T extends AbstractJarSignerRequest> TypeSafeMatcher<T> hasProviderName(String providerName) {
         return new AbstractJarSignerRequestMatcher<T>(
-                "has providerName ", providerName, request -> request.getProviderName()
-                        .equals(providerName));
+                "has providerName ",
+                providerName,
+                request -> request.getProviderName().equals(providerName));
     }
 
     static <T extends AbstractJarSignerRequest> TypeSafeMatcher<T> hasStorepass(String storepass) {
@@ -186,18 +189,23 @@ class RequestMatchers {
     }
 
     static TypeSafeMatcher<JarSignerSignRequest> hasTsaPolicyid(String tsapolicyid) {
-        return new JarSignerSignRequestMatcher("has tsapolicyid ", tsapolicyid, request -> request.getTsapolicyid()
-                .equals(tsapolicyid));
+        return new JarSignerSignRequestMatcher(
+                "has tsapolicyid ",
+                tsapolicyid,
+                request -> request.getTsapolicyid().equals(tsapolicyid));
     }
 
     static TypeSafeMatcher<JarSignerSignRequest> hasTsaDigestalg(String tsadigestalg) {
-        return new JarSignerSignRequestMatcher("has tsadigestalg ", tsadigestalg, request -> request.getTsadigestalg()
-                .equals(tsadigestalg));
+        return new JarSignerSignRequestMatcher(
+                "has tsadigestalg ",
+                tsadigestalg,
+                request -> request.getTsadigestalg().equals(tsadigestalg));
     }
 
     static TypeSafeMatcher<JarSignerSignRequest> hasCertchain(String certchain) {
-        return new JarSignerSignRequestMatcher("has certchain ", certchain, request -> request.getCertchain()
-                .getPath()
-                .equals(certchain));
+        return new JarSignerSignRequestMatcher(
+                "has certchain ",
+                certchain,
+                request -> request.getCertchain().getPath().equals(certchain));
     }
 }
