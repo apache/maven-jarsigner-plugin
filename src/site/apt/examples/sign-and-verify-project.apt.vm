@@ -64,6 +64,6 @@ Sign and verify a project
 </project>
 +-----------------+
 
-  Note: The sign goal requires at least the alias to use for signing. This alias
+  <<Note:>> The sign goal requires at least the alias to use for signing. This alias
   can be passed using the command line like <<<-Djarsigner.alias="Alias Name">>>
   or set as a property in the <<<settings.xml>>> file when not configured in the POM.

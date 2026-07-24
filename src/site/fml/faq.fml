@@ -29,7 +29,7 @@ under the License.
      <question>What is Jarsigner?</question>
      <answer>
        <p>
-         You can read more about this tool in the offical guide:
+         You can read more about this tool in the official guide:
          <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jarsigner.html">jarsigner - JAR Signing and Verification Tool</a>.
        </p>
      </answer>
@@ -58,13 +58,13 @@ under the License.
      </answer>
    </faq>
    <faq id="sign_and_assembly">
-        <question>Why if I want to sign an artifact and then assembly there is some problem under windows?</question>
+        <question>Why is there a problem on Windows when I sign an artifact and then run the assembly plugin?</question>
         <answer>
           <p>
             To fix the problem, just move the assembly execution so it comes <strong>after</strong> the jarsigner execution in the pom.
           </p>
           <p>
-           The whole story of the problem can be found in <a href="https://issues.apache.org/jira/browse/MJARSIGNER-13">MJARSIGNER-13</a> issue.
+            More details can be found in <a href="https://issues.apache.org/jira/browse/MJARSIGNER-13">MJARSIGNER-13</a>.
           </p>
         </answer>
       </faq>
