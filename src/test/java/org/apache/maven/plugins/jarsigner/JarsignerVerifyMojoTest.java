@@ -19,6 +19,7 @@
 package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -165,5 +166,24 @@ public class JarsignerVerifyMojoTest {
         assertThat(
                 mojoException.getMessage(),
                 containsString(mainArtifact.getFile().getPath()));
+    }
+
+    /** Includes with null elements should not cause NPE in String.join replacement */
+    @Test
+    public void testIncludesWithNullElement() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(dummyMavenProjectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerVerifyRequest.class))).thenReturn(RESULT_OK);
+        configuration.put("archiveDirectory", dummyMavenProjectDir.getPath());
+
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+
+        Field includesField = AbstractJarsignerMojo.class.getDeclaredField("includes");
+        includesField.setAccessible(true);
+        includesField.set(mojo, new String[] {"*.jar", null, "*.war"});
+
+        mojo.execute();
+
+        verify(jarSigner).execute(any(JarSignerVerifyRequest.class));
     }
 }

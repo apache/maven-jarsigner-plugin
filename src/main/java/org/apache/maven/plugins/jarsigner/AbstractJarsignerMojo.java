@@ -26,8 +26,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -334,8 +336,12 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (archiveDirectory != null) {
-            String includeList = (includes != null) ? String.join(",", includes) : null;
-            String excludeList = (excludes != null) ? String.join(",", excludes) : null;
+            String includeList = (includes != null)
+                    ? Arrays.stream(includes).filter(Objects::nonNull).collect(Collectors.joining(","))
+                    : null;
+            String excludeList = (excludes != null)
+                    ? Arrays.stream(excludes).filter(Objects::nonNull).collect(Collectors.joining(","))
+                    : null;
 
             try {
                 archives.addAll(FileUtils.getFiles(archiveDirectory, includeList, excludeList));
