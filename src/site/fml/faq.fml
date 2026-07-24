@@ -61,7 +61,7 @@ under the License.
         <question>Why is there a problem on Windows when I sign an artifact and then run the assembly plugin?</question>
         <answer>
           <p>
-            To fix the problem, just move the assembly execution so it comes <strong>after</strong> the jarsigner execution in the pom.
+            To fix the problem, just move the assembly execution so it comes <strong>after</strong> the jarsigner execution in the POM.
           </p>
           <p>
             More details can be found in <a href="https://issues.apache.org/jira/browse/MJARSIGNER-13">MJARSIGNER-13</a>.
