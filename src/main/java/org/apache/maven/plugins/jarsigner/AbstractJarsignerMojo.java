@@ -373,7 +373,9 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         String commandLineInfo = commandLine.toString();
-        commandLineInfo = StringUtils.replace(commandLineInfo, this.storepass, "'*****'");
+        if (this.storepass != null) {
+            commandLineInfo = StringUtils.replace(commandLineInfo, this.storepass, "'*****'");
+        }
         return commandLineInfo;
     }
 

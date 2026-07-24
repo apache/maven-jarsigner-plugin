@@ -247,7 +247,7 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     protected String getCommandlineInfo(final Commandline commandLine) {
         String commandLineInfo = commandLine != null ? commandLine.toString() : null;
 
-        if (commandLineInfo != null) {
+        if (commandLineInfo != null && this.keypass != null) {
             commandLineInfo = StringUtils.replace(commandLineInfo, this.keypass, "'*****'");
         }
 
