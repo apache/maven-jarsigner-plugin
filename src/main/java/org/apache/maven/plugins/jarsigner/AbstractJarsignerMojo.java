@@ -334,8 +334,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (archiveDirectory != null) {
-            String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
-            String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
+            String includeList = (includes != null) ? String.join(",", includes) : null;
+            String excludeList = (excludes != null) ? String.join(",", excludes) : null;
 
             try {
                 archives.addAll(FileUtils.getFiles(archiveDirectory, includeList, excludeList));
