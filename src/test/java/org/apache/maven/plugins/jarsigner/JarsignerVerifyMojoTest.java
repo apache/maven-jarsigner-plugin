@@ -28,6 +28,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
+import org.apache.maven.shared.utils.cli.Commandline;
+import org.apache.maven.shared.utils.cli.shell.Shell;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +44,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -131,6 +134,22 @@ public class JarsignerVerifyMojoTest {
         assertThat(
                 mojoException.getMessage(),
                 containsString(RESULT_ERROR.getCommandline().toString()));
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when
+     * {@code storepass} is {@code null} (the default).
+     */
+    @Test
+    public void testGetCommandlineInfoWithNullStorepass() throws Exception {
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertNotNull(info);
     }
 
     /** When setting errorWhenNotSigned, for file that has existing signing (should not fail) */
