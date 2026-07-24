@@ -175,6 +175,7 @@ public class JarsignerVerifyMojoTest {
         when(project.getArtifact()).thenReturn(mainArtifact);
         when(jarSigner.execute(any(JarSignerVerifyRequest.class))).thenReturn(RESULT_OK);
         configuration.put("archiveDirectory", dummyMavenProjectDir.getPath());
+        configuration.put("processMainArtifact", "false");
 
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
 
