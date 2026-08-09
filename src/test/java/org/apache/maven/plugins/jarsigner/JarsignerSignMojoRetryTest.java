@@ -34,19 +34,18 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.argThat;
@@ -57,8 +56,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JarsignerSignMojoRetryTest {
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    private File folder;
 
     private Locale originalLocale;
     private MavenProject project = mock(MavenProject.class);
@@ -69,11 +68,12 @@ public class JarsignerSignMojoRetryTest {
     private Log log;
     private MojoTestCreator<JarsignerSignMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
-        projectDir = folder.newFolder("dummy-project");
+        projectDir = new File(folder, "dummy-project");
+        projectDir.mkdir();
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
@@ -82,7 +82,7 @@ public class JarsignerSignMojoRetryTest {
         when(project.getArtifact()).thenReturn(mainArtifact);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Locale.setDefault(originalLocale);
     }

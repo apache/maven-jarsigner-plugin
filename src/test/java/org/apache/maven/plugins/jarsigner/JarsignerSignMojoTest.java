@@ -35,11 +35,10 @@ import org.apache.maven.shared.jarsigner.JarSignerUtil;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.hamcrest.MockitoHamcrest;
 
@@ -51,11 +50,11 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -66,8 +65,8 @@ import static org.mockito.Mockito.when;
 
 public class JarsignerSignMojoTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    private File folder;
 
     private Locale originalLocale;
     private MavenProject project = mock(MavenProject.class);
@@ -77,18 +76,19 @@ public class JarsignerSignMojoTest {
     private Log log;
     private MojoTestCreator<JarsignerSignMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
-        projectDir = folder.newFolder("dummy-project");
+        projectDir = new File(folder, "dummy-project");
+        projectDir.mkdir();
         mojoTestCreator =
                 new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Locale.setDefault(originalLocale);
     }
@@ -288,8 +288,8 @@ public class JarsignerSignMojoTest {
         File previouslySignedArchive =
                 TestArtifacts.createDummySignedJarFile(new File(archiveDirectory, "previously_signed_archive.jar"));
         assertTrue(
-                "previously_signed_archive.jar should be detected as a signed file before executing the Mojo",
-                JarSignerUtil.isArchiveSigned(previouslySignedArchive));
+                JarSignerUtil.isArchiveSigned(previouslySignedArchive),
+                "previously_signed_archive.jar should be detected as a signed file before executing the Mojo");
         TestArtifacts.createDummyZipFile(new File(archiveDirectory, "archive_to_exclude.jar"));
         TestArtifacts.createDummyZipFile(new File(archiveDirectory, "not_this.par"));
 
