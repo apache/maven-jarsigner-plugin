@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+---
+title: Frequently Asked Questions
+---
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,54 +21,48 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+<a id="top"></a>
 
-<faqs xmlns="http://maven.apache.org/FML/1.0.1"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/FML/1.0.1 https://maven.apache.org/xsd/fml-1.0.1.xsd"
-  id="FAQ" title="Frequently Asked Questions">
-  <part id="General">
-   <faq id="about">
-     <question>What is Jarsigner?</question>
-     <answer>
-       <p>
-         You can read more about this tool in the offical guide:
-         <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jarsigner.html">jarsigner - JAR Signing and Verification Tool</a>.
-       </p>
-     </answer>
-   </faq>
-   <faq id="single-archive">
-     <question>Is it possible to sign a single archive file?</question>
-     <answer>
-       <p>
-         Signing or verifying a Java archive which is neither a project artifact
-         nor an attached artifact can be done by using the <code>archive</code> parameter
-         of the <a href="sign-mojo.html"><code>sign</code></a> and <a href="verify-mojo.html"><code>verify</code></a> goals. If
-         this parameter is set, the goals will process the specified archive and will not process any project
-         artifacts.
-       </p>
-     </answer>
-   </faq>
-   <faq id="unsign">
-     <question>How can I unsign JARs before re-signing them with my key?</question>
-     <answer>
-       <p>
-         To remove any existing signatures from the JARs before signing with your own key, simply set the parameter
-         <a href="sign-mojo.html#removeExistingSignatures"><code>removeExistingSignatures</code></a> of the
-         <a href="sign-mojo.html"><code>sign</code></a> mojo to <code>true</code>. The resulting JAR will then appear
-         to be signed exactly once.
-       </p>
-     </answer>
-   </faq>
-   <faq id="sign_and_assembly">
-        <question>Why if I want to sign an artifact and then assembly there is some problem under windows?</question>
-        <answer>
-          <p>
-            To fix the problem, just move the assembly execution so it comes <strong>after</strong> the jarsigner execution in the pom.
-          </p>
-          <p>
-           The whole story of the problem can be found in <a href="https://issues.apache.org/jira/browse/MJARSIGNER-13">MJARSIGNER-13</a> issue.
-          </p>
-        </answer>
-      </faq>
-  </part>
-</faqs>
+# Frequently Asked Questions
+
+1. [What is Jarsigner?](#about)
+1. [Is it possible to sign a single archive file?](#single-archive)
+1. [How can I unsign JARs before re-signing them with my key?](#unsign)
+1. [Why if I want to sign an artifact and then assembly there is some problem under windows?](#sign_and_assembly)
+
+<a id="about"></a>
+
+### What is Jarsigner?
+
+You can read more about this tool in the offical guide:
+[jarsigner - JAR Signing and Verification Tool](https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jarsigner.html).
+
+<a id="single-archive"></a>
+
+### Is it possible to sign a single archive file?
+
+Signing or verifying a Java archive which is neither a project artifact nor an
+attached artifact can be done by using the `archive` parameter of the
+[`sign`](sign-mojo.html) and [`verify`](verify-mojo.html) goals. If this parameter is
+set, the goals will process the specified archive and will not process any project
+artifacts.
+
+<a id="unsign"></a>
+
+### How can I unsign JARs before re-signing them with my key?
+
+To remove any existing signatures from the JARs before signing with your own key,
+simply set the parameter
+[`removeExistingSignatures`](sign-mojo.html#removeExistingSignatures) of the
+[`sign`](sign-mojo.html) mojo to `true`. The resulting JAR will then appear to be
+signed exactly once.
+
+<a id="sign_and_assembly"></a>
+
+### Why if I want to sign an artifact and then assembly there is some problem under windows?
+
+To fix the problem, just move the assembly execution so it comes **after** the
+jarsigner execution in the pom.
+
+The whole story of the problem can be found in
+[MJARSIGNER-13](https://issues.apache.org/jira/browse/MJARSIGNER-13) issue.
