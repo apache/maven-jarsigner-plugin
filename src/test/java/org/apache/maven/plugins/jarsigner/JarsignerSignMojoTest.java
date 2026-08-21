@@ -54,7 +54,6 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -194,6 +193,7 @@ public class JarsignerSignMojoTest {
      */
     @Test
     public void testGetCommandlineInfoWithNullKeypass() throws Exception {
+        configuration.put("keypass", null);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
         Shell shell = new Shell();
         Commandline cmd = new Commandline(shell);
@@ -201,7 +201,23 @@ public class JarsignerSignMojoTest {
         cmd.addArguments("my-project.jar", "myalias");
 
         String info = mojo.getCommandlineInfo(cmd);
-        assertNotNull(info);
+        assertEquals(cmd.toString(), info);
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when {@code keypass} is the empty string.
+     */
+    @Test
+    public void testGetCommandlineInfoWithEmptyKeypass() throws Exception {
+        configuration.put("keypass", "");
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
     }
 
     /** Make sure that when skip is configured the Mojo will not process anything */
