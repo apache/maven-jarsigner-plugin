@@ -413,7 +413,8 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     /** Package private for testing */
     void waitAfterFailure(int attempt, Duration maxRetryDelay, Sleeper sleeper) throws MojoExecutionException {
         // Use attempt as exponent in the exponential function, but limit it to avoid too big values.
-        int exponentAttempt = Math.min(attempt, MAX_WAIT_EXPONENT_ATTEMPT);
+        // Clamp to >= 0 to avoid fractional delays for negative attempt values.
+        int exponentAttempt = Math.max(0, Math.min(attempt, MAX_WAIT_EXPONENT_ATTEMPT));
         long delayMillis = (long) (Duration.ofSeconds(1).toMillis() * Math.pow(2, exponentAttempt));
         delayMillis = Math.min(delayMillis, maxRetryDelay.toMillis());
         if (delayMillis > 0) {
