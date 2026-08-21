@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.AssertionsKt.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -142,6 +141,7 @@ public class JarsignerVerifyMojoTest {
      */
     @Test
     public void testGetCommandlineInfoWithNullStorepass() throws Exception {
+        configuration.put("storepass", null);
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
         Shell shell = new Shell();
         Commandline cmd = new Commandline(shell);
@@ -149,7 +149,23 @@ public class JarsignerVerifyMojoTest {
         cmd.addArguments("my-project.jar", "myalias");
 
         String info = mojo.getCommandlineInfo(cmd);
-        assertNotNull(info);
+        assertEquals(cmd.toString(), info);
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when {@code storepass} is the empty string.
+     */
+    @Test
+    public void testGetCommandlineInfoWithEmptyStorepass() throws Exception {
+        configuration.put("storepass", "");
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
     }
 
     /** When setting errorWhenNotSigned, for file that has existing signing (should not fail) */
