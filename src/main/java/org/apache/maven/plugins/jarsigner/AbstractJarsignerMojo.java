@@ -363,8 +363,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
      * This method creates the string representation by calling {@code commandLine.toString()} by default.
      * </p>
      *
-     * @param commandLine The {@code Commandline} to get a string representation of.
-     * @return The string representation of {@code commandLine}.
+     * @param commandLine the {@code Commandline} to get a string representation of
+     * @return the string representation of {@code commandLine}
      * @throws NullPointerException if {@code commandLine} is {@code null}
      */
     protected String getCommandlineInfo(final Commandline commandLine) {
@@ -373,7 +373,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         String commandLineInfo = commandLine.toString();
-        if (this.storepass != null) {
+        if (StringUtils.isNotEmpty(this.storepass)) {
             commandLineInfo = StringUtils.replace(commandLineInfo, this.storepass, "'*****'");
         }
         return commandLineInfo;
@@ -398,7 +398,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     }
 
     /**
-     * Examines an Artifact and extract the File object pointing to the Artifact jar file.
+     * Examines an Artifact and extracts the File object pointing to the Artifact jar file.
      *
      * @param artifact the artifact to examine
      * @return An Optional containing the File, or Optional.empty() if the File is not a jar file.
