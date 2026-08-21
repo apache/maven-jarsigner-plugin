@@ -245,10 +245,14 @@ public class JarsignerSignMojoRetryTest {
         mojo.waitAfterFailure(Integer.MAX_VALUE, Duration.ofSeconds(100), sleeper);
         assertEquals(100_000, sleepValue.get());
 
+        // Negative attempt values should be treated as 0 (first attempt), sleeping 2^0 = 1 second.
         sleepValue.set(noSleepValue); // "reset" sleep value
         mojo.waitAfterFailure(Integer.MIN_VALUE, Duration.ofSeconds(100), sleeper);
-        // Make sure sleep has not been invoked, should be the "reset" value
-        assertEquals(noSleepValue, sleepValue.get());
+        assertEquals(1000, sleepValue.get());
+
+        sleepValue.set(noSleepValue); // "reset" sleep value
+        mojo.waitAfterFailure(-1, Duration.ofSeconds(100), sleeper);
+        assertEquals(1000, sleepValue.get());
 
         // Testing the attempt limit used in exponential function. Will return a odd value (2^20).
         mojo.waitAfterFailure(10000, Duration.ofDays(356), sleeper);
