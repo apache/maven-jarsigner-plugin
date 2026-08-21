@@ -30,10 +30,9 @@ import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
 import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.shell.Shell;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.hamcrest.MockitoHamcrest;
 
@@ -42,11 +41,11 @@ import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.AssertionsKt.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -55,8 +54,8 @@ import static org.mockito.Mockito.when;
 
 public class JarsignerVerifyMojoTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    private File folder;
 
     private MavenProject project = mock(MavenProject.class);
     private JarSigner jarSigner = mock(JarSigner.class);
@@ -65,9 +64,10 @@ public class JarsignerVerifyMojoTest {
     private Log log;
     private MojoTestCreator<JarsignerVerifyMojo> mojoTestCreator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        dummyMavenProjectDir = folder.newFolder("dummy-project");
+        dummyMavenProjectDir = new File(folder, "dummy-project");
+        dummyMavenProjectDir.mkdir();
         mojoTestCreator = new MojoTestCreator<JarsignerVerifyMojo>(
                 JarsignerVerifyMojo.class, project, dummyMavenProjectDir, jarSigner);
         log = mock(Log.class);
