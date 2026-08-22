@@ -287,7 +287,8 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         if (tsa.length > 0 && tsacert.length > 0) {
             getLog().warn(getMessage("warnUsageTsaAndTsacertSimultaneous"));
         }
-        if (tsapolicyid.length > tsa.length || tsapolicyid.length > tsacert.length) {
+        if ((tsa.length > 0 || tsacert.length > 0)
+                && (tsapolicyid.length > tsa.length || tsapolicyid.length > tsacert.length)) {
             getLog().warn(getMessage("warnUsageTsapolicyidTooMany", tsapolicyid.length, tsa.length, tsacert.length));
         }
         if (tsa.length > 1 && maxTries == 1) {

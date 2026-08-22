@@ -445,6 +445,50 @@ public class JarsignerSignMojoTest {
         verify(log).info(contains("1 archive(s) processed"));
     }
 
+    /**
+     * Test that no misleading "Too many OIDs" warning is emitted when tsapolicyid is configured
+     * but neither tsa nor tsacert are configured. See
+     * <a href="https://github.com/apache/maven-jarsigner-plugin/issues/149">issue #149</a>.
+     */
+    @Test
+    public void testTsapolicyidWarningNotEmittedWhenNoTsaConfigured() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        // Configure tsapolicyid but leave tsa and tsacert empty (not configured)
+        configuration.put("tsapolicyid", "1.3.6.1.4.1.4146.2.3.1.2");
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        // The misleading "Too many OIDs" warning must not be emitted
+        verify(log, never()).warn(contains("Too many"));
+    }
+
+    /**
+     * Test that the "Too many OIDs" warning IS emitted when tsapolicyid has more entries than
+     * tsa, and tsa is actually configured.
+     */
+    @Test
+    public void testTsapolicyidWarningEmittedWhenMoreOidsThanTsaServers() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        // Configure one tsa server but two tsapolicyid entries
+        configuration.put("tsa", "http://timestamp.example.com");
+        configuration.put("tsapolicyid", "1.3.6.1.4.1.4146.2.3.1.2,2.16.840.1.114412.7.1");
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        // The "Too many OIDs" warning should be emitted
+        verify(log).warn(contains("Too many"));
+    }
+
     /** Test what is logged when verbose=false */
     @Test
     public void testLoggingVerboseFalse() throws Exception {
