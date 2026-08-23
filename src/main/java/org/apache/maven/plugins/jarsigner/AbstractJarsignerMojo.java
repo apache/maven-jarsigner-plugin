@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.StringJoiner;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -334,8 +335,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (archiveDirectory != null) {
-            String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
-            String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
+            String includeList = joinStrings(includes);
+            String excludeList = joinStrings(excludes);
 
             try {
                 archives.addAll(FileUtils.getFiles(archiveDirectory, includeList, excludeList));
@@ -345,6 +346,23 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         return archives;
+    }
+
+    /**
+     * Joins a string array with commas.
+     *
+     * @param strings the strings to join
+     * @return the comma-separated string, or {@code null} if the input is {@code null}
+     */
+    private static String joinStrings(String[] strings) {
+        if (strings == null) {
+            return null;
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        for (String s : strings) {
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
 
     /**

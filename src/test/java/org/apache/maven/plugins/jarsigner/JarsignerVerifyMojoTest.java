@@ -166,4 +166,28 @@ public class JarsignerVerifyMojoTest {
                 mojoException.getMessage(),
                 containsString(mainArtifact.getFile().getPath()));
     }
+
+    /** Archive directory with includes filter processes only matching files. */
+    @Test
+    public void testIncludesFilterWithArchiveDirectory() throws Exception {
+        File archiveDirectory = new File(dummyMavenProjectDir, "archives");
+        archiveDirectory.mkdir();
+        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "included.jar"));
+        TestArtifacts.createDummyZipFile(new File(archiveDirectory, "not-this.par"));
+
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(dummyMavenProjectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerVerifyRequest.class))).thenReturn(RESULT_OK);
+        configuration.put("archiveDirectory", archiveDirectory.getPath());
+        configuration.put("includes", "*.jar");
+        configuration.put("processMainArtifact", "false");
+
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("included.jar")));
+        verify(jarSigner, org.mockito.Mockito.never())
+                .execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("not-this.par")));
+    }
 }
