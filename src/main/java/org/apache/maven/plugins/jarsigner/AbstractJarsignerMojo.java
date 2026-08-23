@@ -26,10 +26,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
+import java.util.StringJoiner;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -336,12 +335,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (archiveDirectory != null) {
-            String includeList = (includes != null)
-                    ? Arrays.stream(includes).filter(Objects::nonNull).collect(Collectors.joining(","))
-                    : null;
-            String excludeList = (excludes != null)
-                    ? Arrays.stream(excludes).filter(Objects::nonNull).collect(Collectors.joining(","))
-                    : null;
+            String includeList = joinStrings(includes);
+            String excludeList = joinStrings(excludes);
 
             try {
                 archives.addAll(FileUtils.getFiles(archiveDirectory, includeList, excludeList));
@@ -351,6 +346,25 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         return archives;
+    }
+
+    /**
+     * Joins a string array with commas, skipping null elements.
+     *
+     * @param strings the strings to join
+     * @return the comma-separated string, or {@code null} if the input is {@code null}
+     */
+    private static String joinStrings(String[] strings) {
+        if (strings == null) {
+            return null;
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        for (String s : strings) {
+            if (s != null) {
+                joiner.add(s);
+            }
+        }
+        return joiner.toString();
     }
 
     /**
