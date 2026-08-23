@@ -349,7 +349,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     }
 
     /**
-     * Joins a string array with commas, skipping null elements.
+     * Joins a string array with commas.
      *
      * @param strings the strings to join
      * @return the comma-separated string, or {@code null} if the input is {@code null}
@@ -360,9 +360,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
         StringJoiner joiner = new StringJoiner(",");
         for (String s : strings) {
-            if (s != null) {
-                joiner.add(s);
-            }
+            joiner.add(s);
         }
         return joiner.toString();
     }
