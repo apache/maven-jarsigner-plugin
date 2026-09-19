@@ -523,11 +523,11 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
             }
 
             if (StringUtils.isNotEmpty(this.settings.getActiveProxy().getNonProxyHosts())) {
-                additionalArguments.add("-J-Dhttp.nonProxyHosts=\""
-                        + this.settings.getActiveProxy().getNonProxyHosts() + "\"");
+                additionalArguments.add("-J-Dhttp.nonProxyHosts="
+                        + this.settings.getActiveProxy().getNonProxyHosts());
 
-                additionalArguments.add("-J-Dftp.nonProxyHosts=\""
-                        + this.settings.getActiveProxy().getNonProxyHosts() + "\"");
+                additionalArguments.add("-J-Dftp.nonProxyHosts="
+                        + this.settings.getActiveProxy().getNonProxyHosts());
             }
         }
 
