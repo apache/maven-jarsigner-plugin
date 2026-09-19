@@ -28,6 +28,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerVerifyRequest;
+import org.apache.maven.shared.utils.cli.Commandline;
+import org.apache.maven.shared.utils.cli.shell.Shell;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -131,6 +133,39 @@ public class JarsignerVerifyMojoTest {
         assertThat(
                 mojoException.getMessage(),
                 containsString(RESULT_ERROR.getCommandline().toString()));
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when
+     * {@code storepass} is {@code null} (the default).
+     */
+    @Test
+    public void testGetCommandlineInfoWithNullStorepass() throws Exception {
+        configuration.put("storepass", null);
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when {@code storepass} is the empty string.
+     */
+    @Test
+    public void testGetCommandlineInfoWithEmptyStorepass() throws Exception {
+        configuration.put("storepass", "");
+        JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
     }
 
     /** When setting errorWhenNotSigned, for file that has existing signing (should not fail) */

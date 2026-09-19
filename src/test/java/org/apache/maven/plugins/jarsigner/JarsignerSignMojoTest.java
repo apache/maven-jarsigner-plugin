@@ -32,7 +32,9 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
+import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
+import org.apache.maven.shared.utils.cli.shell.Shell;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.junit.jupiter.api.AfterEach;
@@ -183,6 +185,39 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         verify(jarSigner, never()).execute(any()); // Should not try to sign anything
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when
+     * {@code keypass} is {@code null} (the default).
+     */
+    @Test
+    public void testGetCommandlineInfoWithNullKeypass() throws Exception {
+        configuration.put("keypass", null);
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
+    }
+
+    /**
+     * Verifies that {@code getCommandlineInfo} does not throw when {@code keypass} is the empty string.
+     */
+    @Test
+    public void testGetCommandlineInfoWithEmptyKeypass() throws Exception {
+        configuration.put("keypass", "");
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+        Shell shell = new Shell();
+        Commandline cmd = new Commandline(shell);
+        cmd.setExecutable("jarsigner");
+        cmd.addArguments("my-project.jar", "myalias");
+
+        String info = mojo.getCommandlineInfo(cmd);
+        assertEquals(cmd.toString(), info);
     }
 
     /** Make sure that when skip is configured the Mojo will not process anything */
