@@ -32,17 +32,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.hamcrest.MockitoHamcrest;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -94,7 +91,7 @@ public class JarsignerVerifyMojoTest {
         assertNull(request.getProviderClass());
         assertNull(request.getProviderArg());
         assertNull(request.getMaxMemory());
-        assertThat(request.getArguments()[0], startsWith("-J-Dfile.encoding="));
+        assertTrue(request.getArguments()[0].startsWith("-J-Dfile.encoding="));
         assertEquals(dummyMavenProjectDir, request.getWorkingDirectory());
         assertEquals(mainArtifact.getFile(), request.getArchive());
         assertFalse(request.isProtectedAuthenticationPath());
@@ -127,10 +124,10 @@ public class JarsignerVerifyMojoTest {
         MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
             mojo.execute();
         });
-        assertThat(mojoException.getMessage(), containsString(String.valueOf(RESULT_ERROR.getExitCode())));
-        assertThat(
-                mojoException.getMessage(),
-                containsString(RESULT_ERROR.getCommandline().toString()));
+        assertTrue(mojoException.getMessage().contains(String.valueOf(RESULT_ERROR.getExitCode())));
+        assertTrue(mojoException
+                .getMessage()
+                .contains(RESULT_ERROR.getCommandline().toString()));
     }
 
     /** When setting errorWhenNotSigned, for file that has existing signing (should not fail) */
@@ -146,7 +143,7 @@ public class JarsignerVerifyMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasFileName("my-project.jar")));
     }
 
     /** When setting errorWhenNotSigned, for file that does not have existing signing (should fail) */
@@ -162,8 +159,6 @@ public class JarsignerVerifyMojoTest {
         MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
             mojo.execute();
         });
-        assertThat(
-                mojoException.getMessage(),
-                containsString(mainArtifact.getFile().getPath()));
+        assertTrue(mojoException.getMessage().contains(mainArtifact.getFile().getPath()));
     }
 }
