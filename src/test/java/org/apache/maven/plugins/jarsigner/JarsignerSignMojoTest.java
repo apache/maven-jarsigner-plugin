@@ -412,6 +412,7 @@ public class JarsignerSignMojoTest {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
 
         Proxy proxy = new Proxy();
+        proxy.setActive(true);
         proxy.setHost("proxy.example.com");
         proxy.setPort(8080);
         proxy.setNonProxyHosts("localhost|*.example.com");
