@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -181,8 +182,7 @@ public class JarsignerVerifyMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("included.jar")));
-        verify(jarSigner, org.mockito.Mockito.never())
-                .execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("not-this.par")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasFileName("included.jar")));
+        verify(jarSigner, never()).execute(argThat(RequestMatchers.hasFileName("not-this.par")));
     }
 }
