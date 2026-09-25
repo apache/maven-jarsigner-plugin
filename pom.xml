@@ -165,13 +165,13 @@ under the License.
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <configuration>
-            <excludes combine.children="append">
+            <inputExcludes>
               <!--
                 The manifest specification does not describe any method for writing comments into the manifest.
               -->
               <exclude>src/it/unsign/src/main/resources/META-INF/UNSIGNED.*</exclude>
               <exclude>src/it/keystore</exclude>
-            </excludes>
+            </inputExcludes>
           </configuration>
         </plugin>
       </plugins>
