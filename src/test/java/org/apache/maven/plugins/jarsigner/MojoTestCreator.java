@@ -27,15 +27,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.jarsigner.JarsignerSignMojo.WaitStrategy;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Creates and configures a Mojo instance to be used in testing.
@@ -54,6 +59,7 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
     private SecDispatcher securityDispatcher;
     private WaitStrategy waitStrategy;
     private Log log;
+    private Settings settings = new Settings();
     private List<Field> fields;
 
     public MojoTestCreator(Class<T> clazz, MavenProject project, File projectDir, JarSigner jarSigner)
@@ -83,6 +89,10 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
         this.log = log;
     }
 
+    public void setSettings(Settings settings) {
+        this.settings = settings;
+    }
+
     /**
      * Creates and configures the Mojo instance.
      *
@@ -95,6 +105,9 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
         setAttribute(mojo, "project", project);
         setAttribute(mojo, "jarSigner", jarSigner);
         setAttribute(mojo, "securityDispatcher", securityDispatcher);
+        MavenSession session = mock(MavenSession.class);
+        when(session.getSettings()).thenReturn(settings);
+        setAttribute(mojo, "session", session);
         if (toolchainManager != null) {
             setAttribute(mojo, "toolchainManager", toolchainManager);
         }

@@ -29,6 +29,8 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Proxy;
+import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerSignRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
@@ -381,6 +383,34 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         verify(jarSigner).setToolchain(toolchain);
+    }
+
+    /** Make sure the active proxy from the session's settings is passed on to jarsigner */
+    @Test
+    public void testActiveProxyFromSessionSettings() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        Proxy proxy = new Proxy();
+        proxy.setActive(true);
+        proxy.setHost("proxy.example.com");
+        proxy.setPort(3128);
+        proxy.setNonProxyHosts("localhost|*.example.org");
+        Settings settings = new Settings();
+        settings.addProxy(proxy);
+        mojoTestCreator.setSettings(settings);
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        ArgumentCaptor<JarSignerSignRequest> requestArgument = ArgumentCaptor.forClass(JarSignerSignRequest.class);
+        verify(jarSigner).execute(requestArgument.capture());
+        List<String> arguments = Arrays.asList(requestArgument.getValue().getArguments());
+        assertTrue(arguments.contains("-J-Dhttp.proxyHost=proxy.example.com"), arguments.toString());
+        assertTrue(arguments.contains("-J-Dhttps.proxyPort=3128"), arguments.toString());
+        assertTrue(arguments.contains("-J-Dhttp.nonProxyHosts=\"localhost|*.example.org\""), arguments.toString());
     }
 
     /** Make sure the Mojo correctly invokes the SecDispatcher for decryption of passwords */
