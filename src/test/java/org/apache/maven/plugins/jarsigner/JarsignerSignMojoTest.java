@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class JarsignerSignMojoTest {
@@ -430,6 +432,37 @@ public class JarsignerSignMojoTest {
 
         verify(jarSigner).execute(argThat(RequestMatchers.hasKeypass("mykeypass")));
         verify(jarSigner).execute(argThat(RequestMatchers.hasStorepass("mystorepass")));
+    }
+
+    /** decrypt() must not call the SecDispatcher at all when there is nothing to decrypt */
+    @Test
+    public void testDecryptSkipsDispatcherWhenPasswordNotConfigured() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        SecDispatcher securityDispatcher = mock(SecDispatcher.class);
+        mojoTestCreator.setSecDispatcher(securityDispatcher);
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        verifyNoInteractions(securityDispatcher);
+    }
+
+    /** decrypt() must fail with a clear MojoExecutionException, not an NPE, when no SecDispatcher is available */
+    @Test
+    public void testDecryptFailsClearlyWithoutSecurityDispatcher() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+
+        configuration.put("storepass", "mystorepass_encrypted");
+
+        mojoTestCreator.setSecDispatcher(null);
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        MojoExecutionException exception = assertThrows(MojoExecutionException.class, mojo::execute);
+        assertTrue(exception.getMessage().contains("storepass"), exception.getMessage());
     }
 
     /** Make sure that a customer file encoding to jarsigner can be set and that it does not get duplicated */
