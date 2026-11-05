@@ -539,7 +539,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
                         : null);
 
         // Special handling for passwords through the Maven Security Dispatcher
-        request.setStorepass(decrypt(storepass));
+        request.setStorepass(decrypt(storepass, "storepass"));
 
         try {
             executeJarSigner(jarSigner, request);
@@ -560,11 +560,31 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
             throws JavaToolException, MojoExecutionException;
 
     protected String decrypt(String encoded) throws MojoExecutionException {
+        return decrypt(encoded, "password");
+    }
+
+    /**
+     * Decrypts the given value through the Maven Security Dispatcher.
+     *
+     * @param encoded the possibly encoded value, may be {@code null}
+     * @param fieldName the name of the configuration field {@code encoded} comes from, used only to identify
+     *     which value failed to decrypt in error messages; never the value itself
+     * @return the decrypted value, or {@code null} if {@code encoded} was {@code null}
+     * @throws MojoExecutionException if there is no security dispatcher available, or it fails to decrypt the value
+     */
+    protected String decrypt(String encoded, String fieldName) throws MojoExecutionException {
+        if (encoded == null) {
+            return null;
+        }
+        if (securityDispatcher == null) {
+            throw new MojoExecutionException("No security dispatcher available to decrypt " + fieldName + ".");
+        }
         try {
             return securityDispatcher.decrypt(encoded);
         } catch (SecDispatcherException e) {
-            getLog().error("error using security dispatcher: " + e.getMessage(), e);
-            throw new MojoExecutionException("error using security dispatcher: " + e.getMessage(), e);
+            String message = "error using security dispatcher to decrypt " + fieldName + ": " + e.getMessage();
+            getLog().error(message, e);
+            throw new MojoExecutionException(message, e);
         }
     }
 
