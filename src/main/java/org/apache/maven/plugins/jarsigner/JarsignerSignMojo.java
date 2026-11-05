@@ -329,13 +329,13 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
     @Override
     protected void processArchives(List<File> archives) throws MojoExecutionException {
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        List<Future<Void>> futures = archives.stream()
-                .map(file -> executor.submit((Callable<Void>) () -> {
-                    processArchive(file);
-                    return null; // Return dummy value to conform with Void type
-                }))
-                .collect(Collectors.toList());
         try {
+            List<Future<Void>> futures = archives.stream()
+                    .map(file -> executor.submit((Callable<Void>) () -> {
+                        processArchive(file);
+                        return null; // Return dummy value to conform with Void type
+                    }))
+                    .collect(Collectors.toList());
             for (Future<Void> future : futures) {
                 future.get(); // Wait for completion. Result ignored, but may raise any Exception
             }
