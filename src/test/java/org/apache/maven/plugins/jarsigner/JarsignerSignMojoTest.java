@@ -42,21 +42,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.hamcrest.MockitoHamcrest;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -118,7 +112,7 @@ public class JarsignerSignMojoTest {
         assertNull(request.getProviderClass());
         assertNull(request.getProviderArg());
         assertNull(request.getMaxMemory());
-        assertThat(request.getArguments()[0], startsWith("-J-Dfile.encoding="));
+        assertTrue(request.getArguments()[0].startsWith("-J-Dfile.encoding="));
         assertEquals(projectDir, request.getWorkingDirectory());
         assertEquals(mainArtifact.getFile(), request.getArchive());
         assertFalse(request.isProtectedAuthenticationPath());
@@ -142,10 +136,10 @@ public class JarsignerSignMojoTest {
         MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
             mojo.execute();
         });
-        assertThat(mojoException.getMessage(), containsString(String.valueOf(RESULT_ERROR.getExitCode())));
-        assertThat(
-                mojoException.getMessage(),
-                containsString(RESULT_ERROR.getCommandline().toString()));
+        assertTrue(mojoException.getMessage().contains(String.valueOf(RESULT_ERROR.getExitCode())));
+        assertTrue(mojoException
+                .getMessage()
+                .contains(RESULT_ERROR.getCommandline().toString()));
     }
 
     /** When JavaTool throws an exception on execute() (when executing jarsigner). */
@@ -159,7 +153,7 @@ public class JarsignerSignMojoTest {
         MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
             mojo.execute();
         });
-        assertThat(mojoException.getMessage(), containsString("test failure"));
+        assertTrue(mojoException.getMessage().contains("test failure"));
     }
 
     /** Standard POM project with nothing special configured */
@@ -212,8 +206,8 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         // Make sure only the jar pointed by "archive" has been processed, but not the main artifact
-        verify(jarSigner, never()).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("archive.jar")));
+        verify(jarSigner, never()).execute(argThat(RequestMatchers.hasFileName("my-project.jar")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasFileName("archive.jar")));
     }
 
     /** Test that it is possible to disable processing of attached artifacts */
@@ -233,9 +227,8 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         // Make sure that only the main artifact has been processed, but not the attached artifact
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project.jar")));
-        verify(jarSigner, never())
-                .execute(MockitoHamcrest.argThat(RequestMatchers.hasFileName("my-project-sources.jar")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasFileName("my-project.jar")));
+        verify(jarSigner, never()).execute(argThat(RequestMatchers.hasFileName("my-project-sources.jar")));
     }
 
     /** A Java project with 3 types of artifacts: main, javadoc and sources */
@@ -256,9 +249,9 @@ public class JarsignerSignMojoTest {
         verify(jarSigner, times(3)).execute(requestArgument.capture());
 
         List<JarSignerSignRequest> requests = requestArgument.getAllValues();
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project.jar")));
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project-sources.jar")));
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project-javadoc.jar")));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project.jar")::matches));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project-sources.jar")::matches));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project-javadoc.jar")::matches));
     }
 
     /**
@@ -334,36 +327,43 @@ public class JarsignerSignMojoTest {
         verify(jarSigner, times(5)).execute(requestArgument.capture());
         List<JarSignerSignRequest> requests = requestArgument.getAllValues();
 
-        assertThat(requests, everyItem(RequestMatchers.hasAlias("myalias")));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasAlias("myalias")::matches));
 
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("archive1.jar")));
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("previously_signed_archive.jar")));
-        assertThat(requests, hasItem(not(RequestMatchers.hasFileName("archive_to_exclude.jar"))));
-        assertThat(requests, hasItem(not(RequestMatchers.hasFileName("not_this.par"))));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("archive1.jar")::matches));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("previously_signed_archive.jar")::matches));
+        assertTrue(requests.stream()
+                .anyMatch(r ->
+                        !RequestMatchers.hasFileName("archive_to_exclude.jar").matches(r)));
+        assertTrue(requests.stream()
+                .anyMatch(r -> !RequestMatchers.hasFileName("not_this.par").matches(r)));
 
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project.jar")));
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project-sources.jar")));
-        assertThat(requests, hasItem(RequestMatchers.hasFileName("my-project-javadoc.jar")));
-        assertThat(requests, hasItem(not(RequestMatchers.hasFileName("my-project-included_and_excluded.jar"))));
-        assertThat(requests, hasItem(not(RequestMatchers.hasFileName("my-project-excluded_classifier.jar"))));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project.jar")::matches));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project-sources.jar")::matches));
+        assertTrue(requests.stream().anyMatch(RequestMatchers.hasFileName("my-project-javadoc.jar")::matches));
+        assertTrue(requests.stream()
+                .anyMatch(r -> !RequestMatchers.hasFileName("my-project-included_and_excluded.jar")
+                        .matches(r)));
+        assertTrue(requests.stream()
+                .anyMatch(r -> !RequestMatchers.hasFileName("my-project-excluded_classifier.jar")
+                        .matches(r)));
 
-        assertThat(
-                requests, everyItem(RequestMatchers.hasArguments(new String[] {"jarsigner-arg1", "jarsigner-arg2"})));
-        assertThat(requests, everyItem(RequestMatchers.hasCertchain("mycertchain")));
-        assertThat(requests, everyItem(RequestMatchers.hasKeypass("mykeypass")));
-        assertThat(requests, everyItem(RequestMatchers.hasKeystore("mykeystore")));
-        assertThat(requests, everyItem(RequestMatchers.hasMaxMemory("mymaxmemory")));
-        assertThat(requests, everyItem(RequestMatchers.hasProtectedAuthenticationPath(true)));
-        assertThat(requests, everyItem(RequestMatchers.hasProviderArg("myproviderarg")));
-        assertThat(requests, everyItem(RequestMatchers.hasProviderClass("myproviderclass")));
-        assertThat(requests, everyItem(RequestMatchers.hasProviderName("myprovidername")));
+        assertTrue(requests.stream()
+                .allMatch(RequestMatchers.hasArguments(new String[] {"jarsigner-arg1", "jarsigner-arg2"})::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasCertchain("mycertchain")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasKeypass("mykeypass")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasKeystore("mykeystore")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasMaxMemory("mymaxmemory")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasProtectedAuthenticationPath(true)::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasProviderArg("myproviderarg")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasProviderClass("myproviderclass")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasProviderName("myprovidername")::matches));
         assertFalse(JarSignerUtil.isArchiveSigned(previouslySignedArchive)); // Make sure previous signing is gone
-        assertThat(requests, everyItem(RequestMatchers.hasSigfile("mysigfile")));
-        assertThat(requests, everyItem(RequestMatchers.hasStorepass("mystorepass")));
-        assertThat(requests, everyItem(RequestMatchers.hasStoretype("mystoretype")));
-        assertThat(requests, everyItem(RequestMatchers.hasTsa("mytsa")));
-        assertThat(requests, everyItem(RequestMatchers.hasTsacert("mytsacert")));
-        assertThat(requests, everyItem(RequestMatchers.hasVerbose(true)));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasSigfile("mysigfile")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasStorepass("mystorepass")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasStoretype("mystoretype")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasTsa("mytsa")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasTsacert("mytsacert")::matches));
+        assertTrue(requests.stream().allMatch(RequestMatchers.hasVerbose(true)::matches));
     }
 
     /** Make sure that if a custom ToolchainManager is set on the Mojo, it is used by jarSigner */
@@ -385,6 +385,34 @@ public class JarsignerSignMojoTest {
         verify(jarSigner).setToolchain(toolchain);
     }
 
+    /** Make sure the active proxy from the session's settings is passed on to jarsigner */
+    @Test
+    public void testActiveProxyFromSessionSettings() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        Proxy proxy = new Proxy();
+        proxy.setActive(true);
+        proxy.setHost("proxy.example.com");
+        proxy.setPort(3128);
+        proxy.setNonProxyHosts("localhost|*.example.org");
+        Settings settings = new Settings();
+        settings.addProxy(proxy);
+        mojoTestCreator.setSettings(settings);
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        ArgumentCaptor<JarSignerSignRequest> requestArgument = ArgumentCaptor.forClass(JarSignerSignRequest.class);
+        verify(jarSigner).execute(requestArgument.capture());
+        List<String> arguments = Arrays.asList(requestArgument.getValue().getArguments());
+        assertTrue(arguments.contains("-J-Dhttp.proxyHost=proxy.example.com"), arguments.toString());
+        assertTrue(arguments.contains("-J-Dhttps.proxyPort=3128"), arguments.toString());
+        assertTrue(arguments.contains("-J-Dhttp.nonProxyHosts=\"localhost|*.example.org\""), arguments.toString());
+    }
+
     /** Make sure the Mojo correctly invokes the SecDispatcher for decryption of passwords */
     @Test
     public void testSecurityDispatcher() throws Exception {
@@ -400,8 +428,8 @@ public class JarsignerSignMojoTest {
 
         mojo.execute();
 
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasKeypass("mykeypass")));
-        verify(jarSigner).execute(MockitoHamcrest.argThat(RequestMatchers.hasStorepass("mystorepass")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasKeypass("mykeypass")));
+        verify(jarSigner).execute(argThat(RequestMatchers.hasStorepass("mystorepass")));
     }
 
     /** nonProxyHosts value must not include literal quote characters (issue #147) */
@@ -454,7 +482,7 @@ public class JarsignerSignMojoTest {
         mojo.execute();
 
         verify(jarSigner)
-                .execute(MockitoHamcrest.argThat(
+                .execute(argThat(
                         RequestMatchers.hasArguments(new String[] {"-J-Dfile.encoding=ISO-8859-1", "argument2"})));
     }
 
@@ -483,6 +511,50 @@ public class JarsignerSignMojoTest {
         verify(log).info(contains("Forcibly ignoring attached artifacts"));
         verify(log).info(contains("Processing "));
         verify(log).info(contains("1 archive(s) processed"));
+    }
+
+    /**
+     * Test that no misleading "Too many OIDs" warning is emitted when tsapolicyid is configured
+     * but neither tsa nor tsacert are configured. See
+     * <a href="https://github.com/apache/maven-jarsigner-plugin/issues/149">issue #149</a>.
+     */
+    @Test
+    public void testTsapolicyidWarningNotEmittedWhenNoTsaConfigured() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        // Configure tsapolicyid but leave tsa and tsacert empty (not configured)
+        configuration.put("tsapolicyid", "1.3.6.1.4.1.4146.2.3.1.2");
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        // The misleading "Too many OIDs" warning must not be emitted
+        verify(log, never()).warn(contains("Too many"));
+    }
+
+    /**
+     * Test that the "Too many OIDs" warning IS emitted when tsapolicyid has more entries than
+     * tsa, and tsa is actually configured.
+     */
+    @Test
+    public void testTsapolicyidWarningEmittedWhenMoreOidsThanTsaServers() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        // Configure one tsa server but two tsapolicyid entries
+        configuration.put("tsa", "http://timestamp.example.com");
+        configuration.put("tsapolicyid", "1.3.6.1.4.1.4146.2.3.1.2,2.16.840.1.114412.7.1");
+
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+
+        mojo.execute();
+
+        // The "Too many OIDs" warning should be emitted
+        verify(log).warn(contains("Too many"));
     }
 
     /** Test what is logged when verbose=false */

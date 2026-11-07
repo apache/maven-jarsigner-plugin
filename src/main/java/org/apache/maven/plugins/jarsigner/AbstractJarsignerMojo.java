@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.StringJoiner;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -35,6 +36,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerRequest;
@@ -221,14 +223,6 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * The Maven settings.
-     *
-     * @since 1.5
-     */
-    @Parameter(defaultValue = "${settings}", readonly = true, required = true)
-    private Settings settings;
-
-    /**
      * Location of the working directory.
      *
      * @since 1.3
@@ -238,7 +232,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
 
     /**
      * The current build session instance. This is used for
-     * toolchain manager API calls.
+     * toolchain manager API calls and for the active proxy.
      *
      * @since 1.3
      */
@@ -334,8 +328,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (archiveDirectory != null) {
-            String includeList = (includes != null) ? StringUtils.join(includes, ",") : null;
-            String excludeList = (excludes != null) ? StringUtils.join(excludes, ",") : null;
+            String includeList = joinStrings(includes);
+            String excludeList = joinStrings(excludes);
 
             try {
                 archives.addAll(FileUtils.getFiles(archiveDirectory, includeList, excludeList));
@@ -345,6 +339,23 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         return archives;
+    }
+
+    /**
+     * Joins a string array with commas.
+     *
+     * @param strings the strings to join
+     * @return the comma-separated string, or {@code null} if the input is {@code null}
+     */
+    private static String joinStrings(String[] strings) {
+        if (strings == null) {
+            return null;
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        for (String s : strings) {
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
 
     /**
@@ -503,31 +514,21 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         // Adds proxy information.
-        if (this.settings != null
-                && this.settings.getActiveProxy() != null
-                && StringUtils.isNotEmpty(this.settings.getActiveProxy().getHost())) {
-            additionalArguments.add(
-                    "-J-Dhttp.proxyHost=" + this.settings.getActiveProxy().getHost());
-            additionalArguments.add(
-                    "-J-Dhttps.proxyHost=" + this.settings.getActiveProxy().getHost());
-            additionalArguments.add(
-                    "-J-Dftp.proxyHost=" + this.settings.getActiveProxy().getHost());
+        Proxy activeProxy = getActiveProxy();
+        if (activeProxy != null && StringUtils.isNotEmpty(activeProxy.getHost())) {
+            additionalArguments.add("-J-Dhttp.proxyHost=" + activeProxy.getHost());
+            additionalArguments.add("-J-Dhttps.proxyHost=" + activeProxy.getHost());
+            additionalArguments.add("-J-Dftp.proxyHost=" + activeProxy.getHost());
 
-            if (this.settings.getActiveProxy().getPort() > 0) {
-                additionalArguments.add(
-                        "-J-Dhttp.proxyPort=" + this.settings.getActiveProxy().getPort());
-                additionalArguments.add(
-                        "-J-Dhttps.proxyPort=" + this.settings.getActiveProxy().getPort());
-                additionalArguments.add(
-                        "-J-Dftp.proxyPort=" + this.settings.getActiveProxy().getPort());
+            if (activeProxy.getPort() > 0) {
+                additionalArguments.add("-J-Dhttp.proxyPort=" + activeProxy.getPort());
+                additionalArguments.add("-J-Dhttps.proxyPort=" + activeProxy.getPort());
+                additionalArguments.add("-J-Dftp.proxyPort=" + activeProxy.getPort());
             }
 
-            if (StringUtils.isNotEmpty(this.settings.getActiveProxy().getNonProxyHosts())) {
-                additionalArguments.add("-J-Dhttp.nonProxyHosts="
-                        + this.settings.getActiveProxy().getNonProxyHosts());
-
-                additionalArguments.add("-J-Dftp.nonProxyHosts="
-                        + this.settings.getActiveProxy().getNonProxyHosts());
+            if (StringUtils.isNotEmpty(activeProxy.getNonProxyHosts())) {
+                additionalArguments.add("-J-Dhttp.nonProxyHosts=" + activeProxy.getNonProxyHosts());
+                additionalArguments.add("-J-Dftp.nonProxyHosts=" + activeProxy.getNonProxyHosts());
             }
         }
 
@@ -599,5 +600,10 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         return tc;
+    }
+
+    private Proxy getActiveProxy() {
+        Settings settings = session.getSettings();
+        return settings != null ? settings.getActiveProxy() : null;
     }
 }

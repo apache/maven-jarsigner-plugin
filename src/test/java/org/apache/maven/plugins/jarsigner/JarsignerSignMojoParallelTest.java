@@ -45,8 +45,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -204,7 +202,7 @@ public class JarsignerSignMojoParallelTest {
             mojo.execute();
         });
 
-        assertThat(mojoException.getMessage(), containsString(String.valueOf("Failed executing 'jarsigner ")));
+        assertTrue(mojoException.getMessage().contains("Failed executing 'jarsigner "));
         Locale.setDefault(orginalLocale);
     }
 

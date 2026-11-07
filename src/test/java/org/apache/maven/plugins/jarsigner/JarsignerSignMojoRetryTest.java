@@ -41,11 +41,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_ERROR;
 import static org.apache.maven.plugins.jarsigner.TestJavaToolResults.RESULT_OK;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.argThat;
@@ -267,7 +266,7 @@ public class JarsignerSignMojoRetryTest {
         MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
             mojo.waitAfterFailure(0, Duration.ofSeconds(10), iterruptedSleeper);
         });
-        assertThat(mojoException.getMessage(), containsString("interrupted while waiting after failure"));
+        assertTrue(mojoException.getMessage().contains("interrupted while waiting after failure"));
     }
 
     /** Check that the error returned from a re-try scenario where all execution fails is the "correct" error */
@@ -290,8 +289,8 @@ public class JarsignerSignMojoRetryTest {
         });
 
         // Make sure that the last error exit code is present
-        assertThat(mojoException.getMessage(), containsString(String.valueOf(42)));
+        assertTrue(mojoException.getMessage().contains(String.valueOf(42)));
         // Make sure that the first error exit code is not present
-        assertThat(mojoException.getMessage(), not(containsString(String.valueOf(1))));
+        assertFalse(mojoException.getMessage().contains(String.valueOf(1)));
     }
 }
