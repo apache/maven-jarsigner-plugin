@@ -20,6 +20,7 @@ package org.apache.maven.plugins.jarsigner;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -509,7 +510,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (!fileEncodingSeen) {
-            additionalArguments.add("-J-Dfile.encoding=" + System.getProperty("file.encoding"));
+            additionalArguments.add(
+                    "-J-Dfile.encoding=" + Charset.defaultCharset().displayName());
         }
 
         // Adds proxy information.
