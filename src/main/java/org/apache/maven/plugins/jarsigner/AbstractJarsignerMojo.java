@@ -41,13 +41,12 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.jarsigner.JarSigner;
 import org.apache.maven.shared.jarsigner.JarSignerRequest;
 import org.apache.maven.shared.jarsigner.JarSignerUtil;
-import org.apache.maven.shared.utils.ReaderFactory;
-import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
-import org.apache.maven.shared.utils.io.FileUtils;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
@@ -510,7 +509,7 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         if (!fileEncodingSeen) {
-            additionalArguments.add("-J-Dfile.encoding=" + ReaderFactory.FILE_ENCODING);
+            additionalArguments.add("-J-Dfile.encoding=" + System.getProperty("file.encoding"));
         }
 
         // Adds proxy information.
