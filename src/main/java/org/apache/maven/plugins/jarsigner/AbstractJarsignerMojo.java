@@ -528,9 +528,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
             }
 
             if (StringUtils.isNotEmpty(activeProxy.getNonProxyHosts())) {
-                additionalArguments.add("-J-Dhttp.nonProxyHosts=\"" + activeProxy.getNonProxyHosts() + "\"");
-
-                additionalArguments.add("-J-Dftp.nonProxyHosts=\"" + activeProxy.getNonProxyHosts() + "\"");
+                additionalArguments.add("-J-Dhttp.nonProxyHosts=" + activeProxy.getNonProxyHosts());
+                additionalArguments.add("-J-Dftp.nonProxyHosts=" + activeProxy.getNonProxyHosts());
             }
         }
 

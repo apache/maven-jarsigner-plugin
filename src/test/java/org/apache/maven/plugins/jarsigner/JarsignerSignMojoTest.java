@@ -432,6 +432,44 @@ public class JarsignerSignMojoTest {
         verify(jarSigner).execute(argThat(RequestMatchers.hasStorepass("mystorepass")));
     }
 
+    /** nonProxyHosts value must not include literal quote characters (issue #147) */
+    @Test
+    public void testNonProxyHostsNoQuotes() throws Exception {
+        Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
+        when(project.getArtifact()).thenReturn(mainArtifact);
+        when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_OK);
+
+        Proxy proxy = new Proxy();
+        proxy.setActive(true);
+        proxy.setHost("proxy.example.com");
+        proxy.setPort(8080);
+        proxy.setNonProxyHosts("localhost|*.example.com");
+        proxy.setProtocol("http");
+
+        Settings settings = new Settings();
+        settings.addProxy(proxy);
+
+        // Set the 'settings' field on the mojo via reflection
+        JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
+        java.lang.reflect.Field settingsField = AbstractJarsignerMojo.class.getDeclaredField("settings");
+        settingsField.setAccessible(true);
+        settingsField.set(mojo, settings);
+
+        mojo.execute();
+
+        ArgumentCaptor<JarSignerSignRequest> requestArgument = ArgumentCaptor.forClass(JarSignerSignRequest.class);
+        verify(jarSigner).execute(requestArgument.capture());
+        JarSignerSignRequest request = requestArgument.getValue();
+
+        // nonProxyHosts must appear without surrounding literal quotes
+        assertThat(Arrays.asList(request.getArguments()), hasItem("-J-Dhttp.nonProxyHosts=localhost|*.example.com"));
+        assertThat(Arrays.asList(request.getArguments()), hasItem("-J-Dftp.nonProxyHosts=localhost|*.example.com"));
+        // Make sure the literal-quote version is NOT present
+        assertThat(
+                Arrays.asList(request.getArguments()),
+                not(hasItem("-J-Dhttp.nonProxyHosts=\"localhost|*.example.com\"")));
+    }
+
     /** Make sure that a customer file encoding to jarsigner can be set and that it does not get duplicated */
     @Test
     public void testSetCustomFileEncoding() throws Exception {
