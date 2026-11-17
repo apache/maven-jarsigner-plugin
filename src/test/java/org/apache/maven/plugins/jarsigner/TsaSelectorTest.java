@@ -84,7 +84,7 @@ public class TsaSelectorTest {
 
     @Test
     @Timeout(30)
-    public void testMultiThreadedScenario() throws InterruptedException {
+    public void testMultiThreadedScenario() throws Exception {
         executor = Executors.newFixedThreadPool(2);
 
         tsaSelector = new TsaSelector(
