@@ -63,8 +63,7 @@ public class JarsignerVerifyMojoTest {
     public void setUp() throws Exception {
         dummyMavenProjectDir = new File(folder, "dummy-project");
         dummyMavenProjectDir.mkdir();
-        mojoTestCreator = new MojoTestCreator<JarsignerVerifyMojo>(
-                JarsignerVerifyMojo.class, project, dummyMavenProjectDir, jarSigner);
+        mojoTestCreator = new MojoTestCreator<>(JarsignerVerifyMojo.class, project, dummyMavenProjectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
     }
@@ -122,9 +121,7 @@ public class JarsignerVerifyMojoTest {
         when(jarSigner.execute(any(JarSignerVerifyRequest.class))).thenReturn(RESULT_ERROR);
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
         assertTrue(mojoException.getMessage().contains(String.valueOf(RESULT_ERROR.getExitCode())));
         assertTrue(mojoException
                 .getMessage()
@@ -157,9 +154,7 @@ public class JarsignerVerifyMojoTest {
 
         JarsignerVerifyMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
         assertTrue(mojoException.getMessage().contains(mainArtifact.getFile().getPath()));
     }
 
