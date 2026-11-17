@@ -47,7 +47,6 @@ import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
@@ -521,7 +520,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
 
         // Adds proxy information.
         Proxy activeProxy = getActiveProxy();
-        if (activeProxy != null && StringUtils.isNotEmpty(activeProxy.getHost())) {
+        if (activeProxy != null
+                && (activeProxy.getHost() != null && !activeProxy.getHost().isEmpty())) {
             additionalArguments.add("-J-Dhttp.proxyHost=" + activeProxy.getHost());
             additionalArguments.add("-J-Dhttps.proxyHost=" + activeProxy.getHost());
             additionalArguments.add("-J-Dftp.proxyHost=" + activeProxy.getHost());
@@ -532,7 +532,8 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
                 additionalArguments.add("-J-Dftp.proxyPort=" + activeProxy.getPort());
             }
 
-            if (StringUtils.isNotEmpty(activeProxy.getNonProxyHosts())) {
+            if (activeProxy.getNonProxyHosts() != null
+                    && !activeProxy.getNonProxyHosts().isEmpty()) {
                 additionalArguments.add("-J-Dhttp.nonProxyHosts=\"" + activeProxy.getNonProxyHosts() + "\"");
 
                 additionalArguments.add("-J-Dftp.nonProxyHosts=\"" + activeProxy.getNonProxyHosts() + "\"");
