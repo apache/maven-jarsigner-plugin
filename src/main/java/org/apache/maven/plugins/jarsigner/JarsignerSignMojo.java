@@ -45,7 +45,6 @@ import org.apache.maven.shared.utils.cli.Commandline;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolException;
 import org.apache.maven.shared.utils.cli.javatool.JavaToolResult;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 /**
@@ -248,7 +247,12 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         String commandLineInfo = commandLine != null ? commandLine.toString() : null;
 
         if (commandLineInfo != null) {
-            commandLineInfo = StringUtils.replace(commandLineInfo, this.keypass, "'*****'");
+            commandLineInfo = commandLineInfo == null
+                            || commandLineInfo.isEmpty()
+                            || this.keypass == null
+                            || this.keypass.isEmpty()
+                    ? commandLineInfo
+                    : commandLineInfo.replace(this.keypass, "'*****'");
         }
 
         return commandLineInfo;
