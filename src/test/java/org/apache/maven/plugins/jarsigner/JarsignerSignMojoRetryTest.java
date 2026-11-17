@@ -73,8 +73,7 @@ public class JarsignerSignMojoRetryTest {
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = new File(folder, "dummy-project");
         projectDir.mkdir();
-        mojoTestCreator =
-                new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
+        mojoTestCreator = new MojoTestCreator<>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
         Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");
@@ -106,9 +105,7 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "1");
         mojoTestCreator.setWaitStrategy(waitStrategy);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, mojo::execute);
         verify(jarSigner).execute(any());
         verify(waitStrategy, never()).waitAfterFailure(0, Duration.ofSeconds(0));
     }
@@ -136,9 +133,7 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "2");
         mojoTestCreator.setWaitStrategy(waitStrategy);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, mojo::execute);
         verify(jarSigner, times(2)).execute(any());
         verify(waitStrategy).waitAfterFailure(0, Duration.ofSeconds(0));
     }
@@ -152,9 +147,7 @@ public class JarsignerSignMojoRetryTest {
 
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        assertThrows(MojoExecutionException.class, mojo::execute);
 
         verify(jarSigner).execute(any()); // Should have tried exactly one time, regardless of invalid value
         verify(log).warn(contains("Invalid maxTries"));
@@ -221,7 +214,7 @@ public class JarsignerSignMojoRetryTest {
         long noSleepValue = 42_001;
         // Storage of the most recent sleep value
         AtomicLong sleepValue = new AtomicLong(noSleepValue);
-        Sleeper sleeper = value -> sleepValue.set(value);
+        Sleeper sleeper = sleepValue::set;
 
         mojo.waitAfterFailure(0, Duration.ofSeconds(0), sleeper);
         assertEquals(noSleepValue, sleepValue.get());
@@ -284,9 +277,7 @@ public class JarsignerSignMojoRetryTest {
         configuration.put("maxTries", "5");
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
 
         // Make sure that the last error exit code is present
         assertTrue(mojoException.getMessage().contains(String.valueOf(42)));

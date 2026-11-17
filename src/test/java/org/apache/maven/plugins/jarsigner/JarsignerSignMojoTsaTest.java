@@ -67,8 +67,7 @@ public class JarsignerSignMojoTsaTest {
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = new File(folder, "dummy-project");
         projectDir.mkdir();
-        mojoTestCreator =
-                new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
+        mojoTestCreator = new MojoTestCreator<>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
         Artifact mainArtifact = TestArtifacts.createJarArtifact(projectDir, "my-project.jar");

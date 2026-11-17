@@ -175,7 +175,7 @@ public class MojoTestCreator<T extends AbstractJarsignerMojo> {
             String defaultValue = defaultConfiguration.get(parameterName);
             defaultValue = substituteParameterValueVariables(defaultValue);
             Field field = getField(mojo, parameterName);
-            setFieldByStringValue(mojo, field, defaultValue.toString());
+            setFieldByStringValue(mojo, field, defaultValue);
         }
     }
 

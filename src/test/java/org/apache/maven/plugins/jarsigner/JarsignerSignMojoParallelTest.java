@@ -73,8 +73,7 @@ public class JarsignerSignMojoParallelTest {
         projectDir = new File(folder, "dummy-project");
         projectDir.mkdir();
         configuration.put("processMainArtifact", "false");
-        mojoTestCreator =
-                new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
+        mojoTestCreator = new MojoTestCreator<>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
         executor =
@@ -198,9 +197,7 @@ public class JarsignerSignMojoParallelTest {
                 .thenReturn(RESULT_OK);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
 
         assertTrue(mojoException.getMessage().contains("Failed executing 'jarsigner "));
         Locale.setDefault(orginalLocale);

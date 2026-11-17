@@ -32,7 +32,7 @@ import org.mockito.ArgumentMatcher;
 class RequestMatchers {
 
     /** Matcher for parameters common for JarSignerRequest instances */
-    private static class AbstractJarSignerRequestMatcher<T extends AbstractJarSignerRequest>
+    private static final class AbstractJarSignerRequestMatcher<T extends AbstractJarSignerRequest>
             implements ArgumentMatcher<T> {
         private final String predicateDescription;
         private final Object value;
@@ -57,7 +57,7 @@ class RequestMatchers {
     }
 
     /** Matcher for parameters specific to JarSignerSignRequest instances */
-    private static class JarSignerSignRequestMatcher implements ArgumentMatcher<JarSignerSignRequest> {
+    private static final class JarSignerSignRequestMatcher implements ArgumentMatcher<JarSignerSignRequest> {
         private final String predicateDescription;
         private final Object value;
         private final Predicate<JarSignerSignRequest> predicate;
@@ -82,19 +82,19 @@ class RequestMatchers {
 
     /** Create a matcher that matches when the request is using a specific file name for the archive */
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasFileName(String expectedFileName) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has archive file name ",
                 expectedFileName,
                 request -> request.getArchive().getPath().endsWith(expectedFileName));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasAlias(String alias) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has alias ", alias, request -> request.getAlias().equals(alias));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasArguments(String[] arguments) {
-        return new AbstractJarSignerRequestMatcher<T>("has arguments ", arguments, request -> {
+        return new AbstractJarSignerRequestMatcher<>("has arguments ", arguments, request -> {
             List<String> haystack = Arrays.asList(request.getArguments());
             for (String argumentNeedle : arguments) {
                 if (!haystack.contains(argumentNeedle)) {
@@ -106,56 +106,56 @@ class RequestMatchers {
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasKeystore(String keystore) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has keystore ", keystore, request -> request.getKeystore().equals(keystore));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasMaxMemory(String maxMemory) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has maxMemory ", maxMemory, request -> request.getMaxMemory().equals(maxMemory));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasProtectedAuthenticationPath(
             boolean protectedAuthenticationPath) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has protectedAuthenticationPath ",
                 protectedAuthenticationPath,
                 request -> request.isProtectedAuthenticationPath() == protectedAuthenticationPath);
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasProviderArg(String providerArg) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has providerArg ",
                 providerArg,
                 request -> request.getProviderArg().equals(providerArg));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasProviderClass(String providerClass) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has providerClass ",
                 providerClass,
                 request -> request.getProviderClass().equals(providerClass));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasProviderName(String providerName) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has providerName ",
                 providerName,
                 request -> request.getProviderName().equals(providerName));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasStorepass(String storepass) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has storepass ", storepass, request -> request.getStorepass().equals(storepass));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasStoretype(String storetype) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has storetype ", storetype, request -> request.getStoretype().equals(storetype));
     }
 
     static <T extends AbstractJarSignerRequest> ArgumentMatcher<T> hasVerbose(boolean verbose) {
-        return new AbstractJarSignerRequestMatcher<T>(
+        return new AbstractJarSignerRequestMatcher<>(
                 "has verbose ", verbose, request -> request.isVerbose() == verbose);
     }
 

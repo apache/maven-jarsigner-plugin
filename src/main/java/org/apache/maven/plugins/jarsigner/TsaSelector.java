@@ -105,7 +105,7 @@ class TsaSelector {
     }
 
     /** Representation of a single TSA server and the parameters to use for it */
-    static class TsaServer {
+    static final class TsaServer {
         private static final TsaServer EMPTY = new TsaServer(null, null, null, null);
 
         private final AtomicInteger failureCount = new AtomicInteger(0);

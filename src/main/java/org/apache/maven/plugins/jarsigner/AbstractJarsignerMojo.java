@@ -535,9 +535,9 @@ public abstract class AbstractJarsignerMojo extends AbstractMojo {
         }
 
         request.setArguments(
-                !additionalArguments.isEmpty()
-                        ? additionalArguments.toArray(new String[additionalArguments.size()])
-                        : null);
+                additionalArguments.isEmpty()
+                        ? null
+                        : additionalArguments.toArray(new String[additionalArguments.size()]));
 
         // Special handling for passwords through the Maven Security Dispatcher
         request.setStorepass(decrypt(storepass));

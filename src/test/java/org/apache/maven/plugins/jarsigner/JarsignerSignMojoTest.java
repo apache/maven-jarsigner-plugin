@@ -78,8 +78,7 @@ public class JarsignerSignMojoTest {
         Locale.setDefault(Locale.ENGLISH); // For English ResourceBundle to test log messages
         projectDir = new File(folder, "dummy-project");
         projectDir.mkdir();
-        mojoTestCreator =
-                new MojoTestCreator<JarsignerSignMojo>(JarsignerSignMojo.class, project, projectDir, jarSigner);
+        mojoTestCreator = new MojoTestCreator<>(JarsignerSignMojo.class, project, projectDir, jarSigner);
         log = mock(Log.class);
         mojoTestCreator.setLog(log);
     }
@@ -133,9 +132,7 @@ public class JarsignerSignMojoTest {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenReturn(RESULT_ERROR);
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
         assertTrue(mojoException.getMessage().contains(String.valueOf(RESULT_ERROR.getExitCode())));
         assertTrue(mojoException
                 .getMessage()
@@ -150,9 +147,7 @@ public class JarsignerSignMojoTest {
         when(jarSigner.execute(any(JarSignerSignRequest.class))).thenThrow(new JavaToolException("test failure"));
         JarsignerSignMojo mojo = mojoTestCreator.configure(configuration);
 
-        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, () -> {
-            mojo.execute();
-        });
+        MojoExecutionException mojoException = assertThrows(MojoExecutionException.class, mojo::execute);
         assertTrue(mojoException.getMessage().contains("test failure"));
     }
 
