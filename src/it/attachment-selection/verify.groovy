@@ -17,27 +17,24 @@
  * under the License.
  */
 
-import java.io.*;
-import java.util.zip.*;
+import java.io.*
+import java.util.zip.*
 
-File attachedJarFile = new File( basedir, "excluded.jar" );
-System.out.println( "Checking for existence of " + attachedJarFile );
-if ( !attachedJarFile.isFile() )
-{
-    throw new Exception( "missing " + attachedJarFile );
+File attachedJarFile = new File(basedir, "excluded.jar")
+System.out.println("Checking for existence of " + attachedJarFile)
+if (!attachedJarFile.isFile()) {
+    throw new Exception("missing " + attachedJarFile)
 }
 
-ZipFile attachedJar = new ZipFile( attachedJarFile );
-System.out.println( "Checking for absence of " + attachedJarFile.getName() + "!/META-INF/TESTING.SF" );
-if ( attachedJar.getEntry( "META-INF/TESTING.SF" ) != null )
-{
-    throw new Exception( "present " + attachedJarFile.getName() + "!/META-INF/TESTING.SF" );
+ZipFile attachedJar = new ZipFile(attachedJarFile)
+System.out.println("Checking for absence of " + attachedJarFile.getName() + "!/META-INF/TESTING.SF")
+if (attachedJar.getEntry("META-INF/TESTING.SF") != null) {
+    throw new Exception("present " + attachedJarFile.getName() + "!/META-INF/TESTING.SF")
 }
-System.out.println( "Checking for absence of " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA" );
-if ( attachedJar.getEntry( "META-INF/TESTING.DSA" ) != null )
-{
-    throw new Exception( "present " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA" );
+System.out.println("Checking for absence of " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA")
+if (attachedJar.getEntry("META-INF/TESTING.DSA") != null) {
+    throw new Exception("present " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA")
 }
-attachedJar.close();
+attachedJar.close()
 
-return true;
+return true
