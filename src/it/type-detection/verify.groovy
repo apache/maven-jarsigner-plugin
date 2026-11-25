@@ -17,47 +17,41 @@
  * under the License.
  */
 
-import java.io.*;
-import java.util.zip.*;
+import java.io.*
+import java.util.zip.*
 
-File attachedJarFile = new File( basedir, "jar-with-unusual.ext" );
-System.out.println( "Checking for existence of " + attachedJarFile );
-if ( !attachedJarFile.isFile() )
-{
-    throw new Exception( "missing " + attachedJarFile );
-}
-
-ZipFile attachedJar = new ZipFile( attachedJarFile );
-System.out.println( "Checking for existence of " + attachedJarFile.getName() + "!/META-INF/TESTING.SF" );
-if ( attachedJar.getEntry( "META-INF/TESTING.SF" ) == null )
-{
-    throw new Exception( "missing " + attachedJarFile.getName() + "!/META-INF/TESTING.SF" );
-}
-System.out.println( "Checking for existence of " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA" );
-if ( attachedJar.getEntry( "META-INF/TESTING.DSA" ) == null )
-{
-    throw new Exception( "missing " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA" );
-}
-attachedJar.close();
-
-File attachedZipFile = new File( basedir, "some.zip" );
-System.out.println( "Checking for existence of " + attachedZipFile );
-if ( !attachedZipFile.isFile() )
-{
-    throw new Exception( "missing " + attachedZipFile );
+File attachedJarFile = new File(basedir, "jar-with-unusual.ext")
+System.out.println("Checking for existence of " + attachedJarFile)
+if (!attachedJarFile.isFile()) {
+    throw new Exception("missing " + attachedJarFile)
 }
 
-ZipFile attachedZip = new ZipFile( attachedZipFile );
-System.out.println( "Checking for existence of " + attachedZipFile.getName() + "!/META-INF/TESTING.SF" );
-if ( attachedZip.getEntry( "META-INF/TESTING.SF" ) == null )
-{
-    throw new Exception( "missing " + attachedZipFile.getName() + "!/META-INF/TESTING.SF" );
+ZipFile attachedJar = new ZipFile(attachedJarFile)
+System.out.println("Checking for existence of " + attachedJarFile.getName() + "!/META-INF/TESTING.SF")
+if (attachedJar.getEntry("META-INF/TESTING.SF") == null) {
+    throw new Exception("missing " + attachedJarFile.getName() + "!/META-INF/TESTING.SF")
 }
-System.out.println( "Checking for existence of " + attachedZipFile.getName() + "!/META-INF/TESTING.DSA" );
-if ( attachedZip.getEntry( "META-INF/TESTING.DSA" ) == null )
-{
-    throw new Exception( "missing " + attachedZipFile.getName() + "!/META-INF/TESTING.DSA" );
+System.out.println("Checking for existence of " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA")
+if (attachedJar.getEntry("META-INF/TESTING.DSA") == null) {
+    throw new Exception("missing " + attachedJarFile.getName() + "!/META-INF/TESTING.DSA")
 }
-attachedZip.close();
+attachedJar.close()
 
-return true;
+File attachedZipFile = new File(basedir, "some.zip")
+System.out.println("Checking for existence of " + attachedZipFile)
+if (!attachedZipFile.isFile()) {
+    throw new Exception("missing " + attachedZipFile)
+}
+
+ZipFile attachedZip = new ZipFile(attachedZipFile)
+System.out.println("Checking for existence of " + attachedZipFile.getName() + "!/META-INF/TESTING.SF")
+if (attachedZip.getEntry("META-INF/TESTING.SF") == null) {
+    throw new Exception("missing " + attachedZipFile.getName() + "!/META-INF/TESTING.SF")
+}
+System.out.println("Checking for existence of " + attachedZipFile.getName() + "!/META-INF/TESTING.DSA")
+if (attachedZip.getEntry("META-INF/TESTING.DSA") == null) {
+    throw new Exception("missing " + attachedZipFile.getName() + "!/META-INF/TESTING.DSA")
+}
+attachedZip.close()
+
+return true

@@ -17,50 +17,44 @@
  * under the License.
  */
 
-import java.io.*;
-import java.util.jar.*;
+import java.io.*
+import java.util.jar.*
 
-File targetDir = new File( basedir, "target" );
+File targetDir = new File(basedir, "target")
 
-File mainJarFile = new File( targetDir, "test-1.0.jar" );
-System.out.println( "Checking for existence of " + mainJarFile );
-if ( !mainJarFile.isFile() )
-{
-    throw new Exception( "missing " + mainJarFile );
+File mainJarFile = new File(targetDir, "test-1.0.jar")
+System.out.println("Checking for existence of " + mainJarFile)
+if (!mainJarFile.isFile()) {
+    throw new Exception("missing " + mainJarFile)
 }
 
-JarFile mainJar = new JarFile( mainJarFile );
+JarFile mainJar = new JarFile(mainJarFile)
 
-System.out.println( "Checking for existence of " + mainJarFile.getName() + "!/META-INF/TESTING.SF" );
-if ( mainJar.getEntry( "META-INF/TESTING.SF" ) == null )
-{
-    throw new Exception( "missing " + mainJarFile.getName() + "!/META-INF/TESTING.SF" );
+System.out.println("Checking for existence of " + mainJarFile.getName() + "!/META-INF/TESTING.SF")
+if (mainJar.getEntry("META-INF/TESTING.SF") == null) {
+    throw new Exception("missing " + mainJarFile.getName() + "!/META-INF/TESTING.SF")
 }
 
-System.out.println( "Checking for existence of " + mainJarFile.getName() + "!/META-INF/TESTING.DSA" );
-if ( mainJar.getEntry( "META-INF/TESTING.DSA" ) == null )
-{
-    throw new Exception( "missing " + mainJarFile.getName() + "!/META-INF/TESTING.DSA" );
+System.out.println("Checking for existence of " + mainJarFile.getName() + "!/META-INF/TESTING.DSA")
+if (mainJar.getEntry("META-INF/TESTING.DSA") == null) {
+    throw new Exception("missing " + mainJarFile.getName() + "!/META-INF/TESTING.DSA")
 }
 
-System.out.println( "Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.SF" );
-if ( mainJar.getEntry( "META-INF/UNSIGNED.SF" ) != null )
-{
-    throw new Exception( "present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.SF" );
+System.out.println("Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.SF")
+if (mainJar.getEntry("META-INF/UNSIGNED.SF") != null) {
+    throw new Exception("present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.SF")
 }
 
-System.out.println( "Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.DSA" );
-if ( mainJar.getEntry( "META-INF/UNSIGNED.DSA" ) != null )
-{
-    throw new Exception( "present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.DSA" );
+System.out.println("Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.DSA")
+if (mainJar.getEntry("META-INF/UNSIGNED.DSA") != null) {
+    throw new Exception("present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.DSA")
 }
 
-System.out.println( "Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.RSA" );
-if ( mainJar.getEntry( "META-INF/UNSIGNED.RSA" ) != null )
-{
-    throw new Exception( "present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.RSA" );
+System.out.println("Checking for absence of " + mainJarFile.getName() + "!/META-INF/UNSIGNED.RSA")
+if (mainJar.getEntry("META-INF/UNSIGNED.RSA") != null) {
+    throw new Exception("present " + mainJarFile.getName() + "!/META-INF/UNSIGNED.RSA")
 }
 
-mainJar.close();
+mainJar.close()
 
-return true;
+return true
