@@ -315,7 +315,7 @@ public class JarsignerSignMojo extends AbstractJarsignerMojo {
         request.setCertchain(certchain);
 
         // Special handling for passwords through the Maven Security Dispatcher
-        request.setKeypass(decrypt(keypass));
+        request.setKeypass(decrypt(keypass, "keypass"));
         return request;
     }
 
